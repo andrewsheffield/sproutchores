@@ -1,78 +1,77 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+
+// Home hero. The brand wordmark lives in the global header (BaseLayout), so the
+// <h1> here is a value proposition, not a repeat of the logo. Top-loaded value +
+// one clear CTA (engagement research: front-load value, minimize the next-step cost).
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'SproutChores',
+  url: 'https://sproutchores.com',
+  description:
+    'Free printable chore charts for kids of any age — pick age-appropriate tasks, personalize, and print or save as PDF.',
+}
 ---
 
 <BaseLayout
   title="SproutChores — Free Printable Chore Charts for Kids"
-  description="Make free printable chore charts for children of any age. Pick the right tasks, add your child's name, and print or save as PDF in seconds."
+  description="Make a free printable chore chart for your child in under a minute. Pick age-appropriate tasks, add their name, and print or save as PDF — no sign-up."
+  jsonLd={jsonLd}
 >
-  <div class="home-wrapper">
-    <header class="home-header">
-      <h1 class="home-title">SproutChores</h1>
-      <p class="home-tagline">
-        Free, printable chore charts that grow with your child.
-      </p>
-    </header>
-
-    <nav class="home-nav" aria-label="Chore chart pages">
-      <ul class="home-nav__list" role="list">
-        <li>
-          <a class="home-nav__link" href="/chores-for-a-6-year-old/">
-            Chore Chart for a 6-Year-Old
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </div>
+  <section class="hero">
+    <h1 class="hero__title">Free printable chore charts that grow with your kid</h1>
+    <p class="hero__lede">
+      Pick the right tasks for your child's age, personalize the chart, and print
+      or save it as a PDF — in under a minute, with no account and no fuss.
+    </p>
+    <a class="hero__cta" href="/chores-for-a-6-year-old/">Make a chore chart →</a>
+  </section>
 </BaseLayout>
 
 <style>
-  .home-wrapper {
-    max-width: var(--container-max);
+  .hero {
+    max-width: var(--measure);
     margin-inline: auto;
     padding-inline: var(--space-5);
     padding-block: var(--space-8);
     display: grid;
-    gap: var(--space-7);
+    gap: var(--space-5);
   }
 
-  .home-header {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .home-title {
+  .hero__title {
     margin-block: var(--space-0);
+    text-wrap: balance;
   }
 
-  .home-tagline {
+  .hero__lede {
     font-size: var(--text-lg);
+    line-height: var(--leading-normal);
     color: var(--color-muted);
     margin-block: var(--space-0);
-    max-width: var(--measure);
   }
 
-  .home-nav__list {
-    list-style: none;
-    padding: var(--space-0);
-    margin: var(--space-0);
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .home-nav__link {
+  .hero__cta {
+    justify-self: start;
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+    font-weight: var(--weight-bold);
     font-size: var(--text-lg);
-    font-weight: var(--weight-medium);
-    color: var(--color-primary);
-    text-decoration-color: var(--color-border);
-    text-underline-offset: var(--space-1);
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
   }
 
-  .home-nav__link:hover {
-    color: var(--color-primary-hover);
-    text-decoration-color: currentColor;
+  .hero__cta:hover {
+    background-color: var(--color-primary-hover);
+  }
+
+  .hero__cta:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
   }
 </style>
