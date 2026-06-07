@@ -49,6 +49,19 @@ const jsonLdSafe = hasValidJsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003
 
 // GA4 is inert unless a measurement ID is configured at build time.
 const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
+
+// Active-nav detection: normalise the current path (strip trailing slash, treat
+// empty as "/") so "/chores-for-a-6-year-old" and ".../" both match their link.
+const normalisePath = (p: string) => {
+  const trimmed = p.replace(/\/+$/, '')
+  return trimmed === '' ? '/' : trimmed
+}
+const currentPath = normalisePath(Astro.url.pathname)
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/chores-for-a-6-year-old/', label: 'Chore Charts' },
+] as const
+const isActive = (href: string) => normalisePath(href) === currentPath
 ---
 
 <!doctype html>
@@ -101,11 +114,106 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
 
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <slot name="header" />
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="/" aria-label="SproutChores — home">
+          <svg
+            class="brand__mark"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+          >
+            {/* Sprout: a stem rising from soil with two unfurling leaves. */}
+            <path
+              d="M12 21v-7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M12 14c0-3 2.4-5.4 5.4-5.4 0 3-2.4 5.4-5.4 5.4Z"
+              fill="currentColor"
+            />
+            <path
+              d="M12 12.5C12 9.9 9.9 7.8 7.2 7.8c0 2.7 2.1 4.7 4.8 4.7Z"
+              fill="currentColor"
+              opacity="0.7"
+            />
+          </svg>
+          <span class="brand__word">SproutChores</span>
+        </a>
+
+        <nav class="site-nav" aria-label="Primary">
+          <ul class="site-nav__list" role="list">
+            {navLinks.map((link) => (
+              <li>
+                <a
+                  class="site-nav__link"
+                  href={link.href}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </header>
+
     <main id="main">
       <slot />
     </main>
-    <slot name="footer" />
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <a class="brand brand--footer" href="/" aria-label="SproutChores — home">
+          <svg
+            class="brand__mark"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+          >
+            <path
+              d="M12 21v-7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M12 14c0-3 2.4-5.4 5.4-5.4 0 3-2.4 5.4-5.4 5.4Z"
+              fill="currentColor"
+            />
+            <path
+              d="M12 12.5C12 9.9 9.9 7.8 7.2 7.8c0 2.7 2.1 4.7 4.8 4.7Z"
+              fill="currentColor"
+              opacity="0.7"
+            />
+          </svg>
+          <span class="brand__word">SproutChores</span>
+        </a>
+
+        <p class="site-footer__tagline">
+          Free, printable chore charts and routines for families.
+        </p>
+
+        <nav class="site-footer__links" aria-label="Footer">
+          <a href="#">About</a>
+          <a href="#">Privacy</a>
+        </nav>
+
+        <p class="site-footer__copy">
+          © {new Date().getFullYear()} SproutChores. All rights reserved.
+        </p>
+      </div>
+    </footer>
 
     {/* web-vitals: report LCP / INP / CLS via the variant-tagged metrics client.
         Bundled (not is:inline) so the import is resolved & tree-shaken by Vite. */}
@@ -231,6 +339,132 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
       }
       .skip-link:focus {
         top: var(--space-3);
+      }
+
+      /* ---- Site chrome: header / brand / nav / footer (TOKENS ONLY) ---- */
+
+      /* Shared inner container — same max-width + gutter as page content. */
+      .site-header__inner,
+      .site-footer__inner {
+        max-width: var(--container-max);
+        margin-inline: auto;
+        padding-inline: var(--space-5);
+      }
+
+      .site-header {
+        background-color: var(--color-surface);
+        border-bottom: var(--border-width) solid var(--color-border);
+      }
+
+      .site-header__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-5);
+        padding-block: var(--space-4);
+      }
+
+      /* Brand: sprout glyph + wordmark. */
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        text-decoration: none;
+        color: var(--color-text);
+        transition: color var(--duration-fast) var(--ease-out);
+      }
+      .brand:hover {
+        color: var(--color-primary);
+      }
+      .brand__mark {
+        flex-shrink: 0;
+        color: var(--color-primary);
+      }
+      .brand__word {
+        font-family: var(--font-display);
+        font-size: var(--text-xl);
+        font-weight: var(--weight-bold);
+        letter-spacing: -0.01em;
+        line-height: var(--leading-tight);
+      }
+
+      /* Primary nav. */
+      .site-nav__list {
+        list-style: none;
+        margin: var(--space-0);
+        padding: var(--space-0);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+      }
+      .site-nav__link {
+        display: inline-flex;
+        align-items: center;
+        padding: var(--space-2) var(--space-3);
+        border-radius: var(--radius-pill);
+        font-size: var(--text-base);
+        font-weight: var(--weight-medium);
+        color: var(--color-muted);
+        text-decoration: none;
+        transition:
+          color var(--duration-fast) var(--ease-out),
+          background-color var(--duration-fast) var(--ease-out);
+      }
+      .site-nav__link:hover {
+        color: var(--color-primary);
+        background-color: var(--color-surface-sunken);
+      }
+      /* Active page — subtle sprout-tinted pill. */
+      .site-nav__link[aria-current='page'] {
+        color: var(--color-primary);
+        background-color: var(--color-primary-soft);
+        font-weight: var(--weight-bold);
+      }
+
+      /* ---- Footer ---- */
+      .site-footer {
+        margin-top: var(--space-8);
+        background-color: var(--color-surface-sunken);
+        border-top: var(--border-width) solid var(--color-border);
+      }
+      .site-footer__inner {
+        display: grid;
+        justify-items: center;
+        text-align: center;
+        gap: var(--space-3);
+        padding-block: var(--space-7);
+      }
+      .brand--footer .brand__word {
+        font-size: var(--text-lg);
+      }
+      .site-footer__tagline {
+        margin: var(--space-0);
+        max-width: var(--measure);
+        color: var(--color-muted);
+      }
+      .site-footer__links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-4);
+      }
+      .site-footer__links a {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        text-decoration: none;
+        color: var(--color-primary);
+      }
+      .site-footer__links a:hover {
+        color: var(--color-primary-hover);
+        text-decoration: underline;
+        text-underline-offset: var(--space-1);
+      }
+      .site-footer__copy {
+        margin: var(--space-0);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
       }
 
       /* Respect reduced-motion preferences. */
