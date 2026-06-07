@@ -1,0 +1,562 @@
+---
+// ChoreChartGenerator.astro — interactive chore-chart generator island.
+// All chart/chore logic is delegated to the tested core modules; the island
+// script handles only DOM wiring, event handling, and metrics calls.
+//
+// No UI framework; vanilla TS in the <script> block so Astro bundles it as a
+// small island chunk (CWV-safe).
+---
+
+<section class="generator" aria-label="Chore Chart Generator">
+  <div class="generator__controls">
+
+    <div class="control-row">
+      <label class="control-label" for="ccg-age">Child's age</label>
+      <input
+        class="control-input control-input--number"
+        id="ccg-age"
+        type="number"
+        min="4"
+        max="9"
+        value="6"
+        aria-describedby="ccg-age-hint"
+      />
+      <span id="ccg-age-hint" class="control-hint">Ages 4–9 supported</span>
+    </div>
+
+    <div class="control-row">
+      <label class="control-label" for="ccg-name">Child's name <span class="control-optional">(optional)</span></label>
+      <input
+        class="control-input"
+        id="ccg-name"
+        type="text"
+        placeholder="e.g. Sam"
+        autocomplete="off"
+        maxlength="40"
+      />
+    </div>
+
+  </div>
+
+  <!-- Live chart preview -------------------------------------------------- -->
+  <div class="generator__preview" id="ccg-preview" aria-live="polite" aria-atomic="true">
+    <!-- Rendered by the island script on first paint and on every change. -->
+  </div>
+
+  <!-- Chore management ---------------------------------------------------- -->
+  <div class="generator__chore-editor" id="ccg-chore-editor" aria-label="Edit chores">
+    <h3 class="chore-editor__heading">Chores on this chart</h3>
+    <ul class="chore-list" id="ccg-chore-list" role="list">
+      <!-- Populated by island script -->
+    </ul>
+    <div class="chore-add-row">
+      <label class="control-label" for="ccg-new-chore">Add a chore</label>
+      <div class="chore-add-row__inputs">
+        <input
+          class="control-input chore-add-row__text"
+          id="ccg-new-chore"
+          type="text"
+          placeholder="e.g. Take out recycling"
+          maxlength="60"
+          aria-describedby="ccg-new-chore-hint"
+        />
+        <button class="btn btn--secondary" id="ccg-add-btn" type="button">Add</button>
+      </div>
+      <span id="ccg-new-chore-hint" class="control-hint">Press Add or Enter to add to the chart</span>
+    </div>
+  </div>
+
+  <!-- Print action -------------------------------------------------------- -->
+  <div class="generator__actions">
+    <button class="btn btn--primary btn--large" id="ccg-print-btn" type="button">
+      Print / Save as PDF
+    </button>
+  </div>
+</section>
+
+<!-- =========================================================================
+     Island script — vanilla TS, bundled by Astro/Vite.
+     Imports the tested cores; NO business logic re-implemented here.
+========================================================================== -->
+<script>
+  import { chartForAge } from '../lib/generator-core'
+  import { buildPrintableChartModel } from '../lib/printable-chart'
+  import { createMetrics, gaSend, EVENTS } from '../lib/metrics'
+  import { getVariant } from '../lib/variant-config'
+
+  // ---- Metrics setup -------------------------------------------------------
+  const metrics = createMetrics({
+    send: gaSend(import.meta.env.PUBLIC_GA4_ID),
+    getVariant,
+  })
+  let startFired = false
+
+  function trackStart() {
+    if (!startFired) {
+      startFired = true
+      metrics.track(EVENTS.GENERATOR_START)
+    }
+  }
+
+  // ---- DOM refs ------------------------------------------------------------
+  const ageInput    = document.getElementById('ccg-age')    as HTMLInputElement
+  const nameInput   = document.getElementById('ccg-name')   as HTMLInputElement
+  const preview     = document.getElementById('ccg-preview')!
+  const choreList   = document.getElementById('ccg-chore-list')!
+  const newChoreIn  = document.getElementById('ccg-new-chore') as HTMLInputElement
+  const addBtn      = document.getElementById('ccg-add-btn')!
+  const printBtn    = document.getElementById('ccg-print-btn')!
+
+  // ---- State ---------------------------------------------------------------
+  // `customChores` starts as null (= use band defaults). Once the user edits
+  // the list it becomes the overridden set so changes survive age changes.
+  type ChoreItem = { id: string; label: string }
+  let currentAge   = 6
+  let customChores: ChoreItem[] | null = null
+
+  // ---- Core helpers --------------------------------------------------------
+  function getEffectiveChores(): ChoreItem[] {
+    if (customChores !== null) return customChores
+    const { chores } = chartForAge(currentAge)
+    return chores
+  }
+
+  function getEffectiveAgeBand(): string {
+    return chartForAge(currentAge).ageBand
+  }
+
+  // ---- Render chart preview ------------------------------------------------
+  function renderPreview() {
+    const chores  = getEffectiveChores()
+    const ageBand = getEffectiveAgeBand()
+    const childName = nameInput.value.trim() || undefined
+
+    const model = buildPrintableChartModel({ ageBand, chores, childName })
+
+    // Build the preview table
+    const table = document.createElement('table')
+    table.className = 'chart-table'
+    table.setAttribute('role', 'table')
+    table.setAttribute('aria-label', model.title)
+
+    // Caption (also acts as the visible title for print)
+    const caption = document.createElement('caption')
+    caption.className = 'chart-table__title'
+    caption.textContent = model.title
+    table.appendChild(caption)
+
+    // Header row
+    const thead = document.createElement('thead')
+    const headerRow = document.createElement('tr')
+    model.columns.forEach((col) => {
+      const th = document.createElement('th')
+      th.scope = col === 'Chore' ? 'col' : 'col'
+      th.className = col === 'Chore' ? 'chart-table__th chart-table__th--chore' : 'chart-table__th chart-table__th--day'
+      th.textContent = col
+      headerRow.appendChild(th)
+    })
+    thead.appendChild(headerRow)
+    table.appendChild(thead)
+
+    // Body rows — one per chore
+    const tbody = document.createElement('tbody')
+    if (model.rows.length === 0) {
+      const emptyRow = document.createElement('tr')
+      const emptyCell = document.createElement('td')
+      emptyCell.colSpan = model.columns.length
+      emptyCell.className = 'chart-table__empty'
+      emptyCell.textContent = 'No chores on this chart yet — add some below.'
+      emptyRow.appendChild(emptyCell)
+      tbody.appendChild(emptyRow)
+    } else {
+      model.rows.forEach((row) => {
+        const tr = document.createElement('tr')
+        tr.className = 'chart-table__row'
+
+        const choreCell = document.createElement('td')
+        choreCell.className = 'chart-table__chore'
+        choreCell.textContent = row.chore
+        tr.appendChild(choreCell)
+
+        // Day checkbox cells (one per day column)
+        model.columns.slice(1).forEach((day) => {
+          const td = document.createElement('td')
+          td.className = 'chart-table__check-cell'
+          const cb = document.createElement('input')
+          cb.type = 'checkbox'
+          cb.className = 'chart-table__checkbox'
+          cb.setAttribute('aria-label', `${row.chore} — ${day}`)
+          td.appendChild(cb)
+          tr.appendChild(td)
+        })
+
+        tbody.appendChild(tr)
+      })
+    }
+    table.appendChild(tbody)
+
+    preview.innerHTML = ''
+    preview.appendChild(table)
+
+    // Fire generator_complete whenever a valid chart is shown
+    if (chores.length > 0) {
+      metrics.track(EVENTS.GENERATOR_COMPLETE, { age: currentAge })
+    }
+  }
+
+  // ---- Render chore editor list -------------------------------------------
+  function renderChoreList() {
+    const chores = getEffectiveChores()
+    choreList.innerHTML = ''
+
+    chores.forEach((chore) => {
+      const li = document.createElement('li')
+      li.className = 'chore-item'
+
+      const label = document.createElement('span')
+      label.className = 'chore-item__label'
+      label.textContent = chore.label
+
+      const removeBtn = document.createElement('button')
+      removeBtn.type = 'button'
+      removeBtn.className = 'btn btn--ghost btn--sm chore-item__remove'
+      removeBtn.setAttribute('aria-label', `Remove "${chore.label}"`)
+      removeBtn.textContent = '✕'
+      removeBtn.addEventListener('click', () => {
+        trackStart()
+        if (customChores === null) {
+          customChores = getEffectiveChores().slice()
+        }
+        customChores = customChores.filter((c) => c.id !== chore.id)
+        renderChoreList()
+        renderPreview()
+      })
+
+      li.appendChild(label)
+      li.appendChild(removeBtn)
+      choreList.appendChild(li)
+    })
+  }
+
+  // ---- Full refresh (chore list + preview) --------------------------------
+  function refresh() {
+    renderChoreList()
+    renderPreview()
+  }
+
+  // ---- Event: age change ---------------------------------------------------
+  ageInput.addEventListener('input', () => {
+    trackStart()
+    const parsed = parseInt(ageInput.value, 10)
+    if (!Number.isFinite(parsed)) return
+    currentAge = parsed
+    // Reset custom chores on age change so defaults for the new band apply.
+    customChores = null
+    refresh()
+  })
+
+  // ---- Event: name change --------------------------------------------------
+  nameInput.addEventListener('input', () => {
+    trackStart()
+    renderPreview()
+  })
+
+  // ---- Event: add chore ----------------------------------------------------
+  function addChore() {
+    const label = newChoreIn.value.trim()
+    if (!label) return
+    trackStart()
+    if (customChores === null) {
+      customChores = getEffectiveChores().slice()
+    }
+    const id = `custom-${Date.now()}`
+    customChores = [...customChores, { id, label }]
+    newChoreIn.value = ''
+    refresh()
+  }
+
+  addBtn.addEventListener('click', addChore)
+  newChoreIn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addChore()
+    }
+  })
+
+  // ---- Event: print button -------------------------------------------------
+  printBtn.addEventListener('click', () => {
+    metrics.track(EVENTS.PDF_DOWNLOAD, { age: currentAge })
+    window.print()
+  })
+
+  // ---- Initial render ------------------------------------------------------
+  refresh()
+</script>
+
+<style>
+  /* =========================================================================
+     Generator island — tokens only; NO hardcoded hex/rgb/px.
+  ========================================================================= */
+
+  .generator {
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-6);
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* ---- Controls --------------------------------------------------------- */
+
+  .generator__controls {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .control-row {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .control-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text);
+  }
+
+  .control-optional {
+    font-weight: var(--weight-normal);
+    color: var(--color-muted);
+  }
+
+  .control-hint {
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+  }
+
+  .control-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    border: 0.09375rem solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--duration-fast) var(--ease-out);
+  }
+
+  .control-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  }
+
+  .control-input--number {
+    max-width: var(--space-9);
+  }
+
+  /* ---- Preview table ---------------------------------------------------- */
+
+  .generator__preview {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface-sunken);
+    padding: var(--space-4);
+  }
+
+  .chart-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    table-layout: fixed;
+  }
+
+  .chart-table__title {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+    text-align: left;
+    padding-bottom: var(--space-4);
+    caption-side: top;
+  }
+
+  .chart-table__th {
+    padding: var(--space-2) var(--space-3);
+    text-align: center;
+    font-weight: var(--weight-medium);
+    color: var(--color-muted);
+    border-bottom: 0.09375rem solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  .chart-table__th--chore {
+    text-align: left;
+    color: var(--color-text);
+    width: 40%;
+  }
+
+  .chart-table__row:nth-child(even) {
+    background-color: var(--color-surface-sunken);
+  }
+
+  .chart-table__chore {
+    padding: var(--space-3) var(--space-3);
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+    vertical-align: middle;
+  }
+
+  .chart-table__check-cell {
+    padding: var(--space-2);
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .chart-table__checkbox {
+    width: var(--space-5);
+    height: var(--space-5);
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+
+  .chart-table__empty {
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--color-muted);
+    font-style: italic;
+  }
+
+  /* ---- Chore editor ------------------------------------------------------ */
+
+  .generator__chore-editor {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .chore-editor__heading {
+    font-size: var(--text-lg);
+    font-family: var(--font-display);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+    margin: var(--space-0);
+  }
+
+  .chore-list {
+    list-style: none;
+    padding: var(--space-0);
+    margin: var(--space-0);
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .chore-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    background-color: var(--color-surface-sunken);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    border: 0.0625rem solid var(--color-border);
+  }
+
+  .chore-item__label {
+    font-size: var(--text-base);
+    color: var(--color-text);
+    flex: 1;
+  }
+
+  .chore-add-row {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .chore-add-row__inputs {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .chore-add-row__text {
+    flex: 1;
+  }
+
+  /* ---- Buttons ----------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: var(--font-sans);
+    font-weight: var(--weight-medium);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+    white-space: nowrap;
+    text-decoration: none;
+    border: 0.09375rem solid transparent;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-base);
+    line-height: var(--leading-snug);
+  }
+
+  .btn--primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+    border-color: var(--color-primary);
+  }
+
+  .btn--primary:hover {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+
+  .btn--secondary {
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+    border-color: var(--color-border);
+  }
+
+  .btn--secondary:hover {
+    background-color: var(--color-surface-sunken);
+    border-color: var(--color-primary);
+  }
+
+  .btn--ghost {
+    background-color: transparent;
+    color: var(--color-muted);
+    border-color: transparent;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .btn--ghost:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+
+  .btn--sm {
+    font-size: var(--text-sm);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .btn--large {
+    font-size: var(--text-lg);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+  }
+
+  /* ---- Actions row ------------------------------------------------------- */
+
+  .generator__actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+</style>
