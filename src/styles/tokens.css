@@ -90,6 +90,7 @@
 
   /* Borders — one consistent hairline width across components. */
   --border-width: 0.0625rem; /* 1px */
+  --border-checkbox: 0.125rem; /* 2px — chart tick-box outline */
   --border-checkmark: 0.1875rem; /* 3px — stroke for the CSS tick glyph */
 
   /* Elevation — one soft, warm-tinted shadow (avoids cold gray drop shadows). */
@@ -109,4 +110,137 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 120ms;
   --duration-base: 220ms;
+}
+
+/* ============================================================================
+   A/B DIRECTIONS — swappable skins selected via <html data-theme="...">.
+   Each block overrides only what differs from control (custom properties
+   cascade), so a direction = a palette + type + radius/density character.
+   Structure-level tweaks per direction live in the component CSS, keyed off the
+   same :root[data-theme] selector. These are real candidate skins; `control`
+   stays the safe default and is untouched.
+============================================================================ */
+
+/* ---- SPROUT — refined warm "garden" ---------------------------------------
+   Premium/editorial elevation of the control look: warmer paper, a deeper,
+   more confident sprout green, a richer apricot, a serif display face, very
+   generous rounding and soft warm shadows. Cozy and trustworthy. */
+:root[data-theme="sprout"] {
+  --color-bg: #f7f1e6;            /* warmer, creamier paper */
+  --color-surface: #fffdf8;       /* faint warm white */
+  --color-surface-sunken: #efe7d6;
+  --color-text: #2b2118;          /* warm espresso ink */
+  --color-muted: #6f6353;
+  --color-primary: #2c6e49;       /* deep garden green */
+  --color-primary-hover: #225538;
+  --color-primary-contrast: #fffdf8;
+  --color-accent: #e07a3f;        /* warm terracotta-apricot */
+  --color-accent-soft: #f6e4d2;
+  --color-border: #e2d6c0;
+  --color-primary-soft: #e3eee7;
+  --color-danger: #a83f2c;
+  --color-danger-soft: #f4ddd5;
+
+  /* Serif display paired with the rounded sans body. */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Georgia", ui-serif, serif;
+
+  /* Generous, friendly rounding. */
+  --radius-sm: 0.5rem;   /* 8px  */
+  --radius-md: 0.875rem; /* 14px */
+  --radius-lg: 1.5rem;   /* 24px */
+
+  /* Soft, warm-tinted elevation. */
+  --shadow-sm: 0 1px 3px rgba(43, 33, 24, 0.08);
+  --shadow-md: 0 14px 36px -14px rgba(43, 33, 24, 0.22);
+
+  --focus-ring-color: var(--color-accent);
+}
+
+/* ---- PLAYFUL — kid-bright -------------------------------------------------
+   Clean near-white surfaces with a friendly blue/teal primary and a multi-
+   accent palette (sunny yellow + coral). Chunky rounding, a bold rounded sans
+   for display, larger icons (sized in the component). Energetic but clean. */
+:root[data-theme="playful"] {
+  --color-bg: #f4f9fb;            /* cool near-white sky */
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eaf4f8;
+  --color-text: #15323d;          /* deep teal-ink */
+  --color-muted: #5a7682;
+  --color-primary: #1f9aaa;       /* friendly blue-teal */
+  --color-primary-hover: #167b89;
+  --color-primary-contrast: #ffffff;
+  --color-accent: #ff8a5c;        /* coral */
+  --color-accent-soft: #fff0d6;   /* sunny-yellow wash */
+  --color-border: #cfe6ec;
+  --color-primary-soft: #d6f0f3;
+  --color-danger: #e2562f;
+  --color-danger-soft: #ffe1d6;
+
+  /* Bold rounded sans for display (distinct from the serif elsewhere). */
+  --font-display: "SF Pro Rounded", ui-rounded, "Segoe UI Variable",
+    "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+  --weight-medium: 600;
+  --weight-bold: 800;
+
+  /* Chunky rounding. */
+  --radius-sm: 0.625rem; /* 10px */
+  --radius-md: 1rem;     /* 16px */
+  --radius-lg: 1.75rem;  /* 28px */
+
+  /* Thicker, bouncier outlines for the tick-boxes. */
+  --border-checkbox: 0.1875rem;  /* 3px */
+  --border-checkmark: 0.25rem;   /* 4px */
+
+  /* Colourful, slightly more present shadow. */
+  --shadow-sm: 0 2px 4px rgba(21, 50, 61, 0.08);
+  --shadow-md: 0 16px 34px -14px rgba(21, 50, 61, 0.24);
+
+  --focus-ring-color: var(--color-accent);
+  --focus-ring-width: 3px;
+}
+
+/* ---- MODERN — crisp product/tool ------------------------------------------
+   Higher-contrast neutral surfaces, one confident indigo accent, a tight
+   modern sans, slightly reduced rounding and denser spacing. Professional,
+   tool-forward, no warmth-for-warmth's-sake. */
+:root[data-theme="modern"] {
+  --color-bg: #f5f6f8;            /* cool neutral */
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eef0f4;
+  --color-text: #11151c;          /* near-black ink */
+  --color-muted: #5b6472;
+  --color-primary: #4338ca;       /* confident indigo */
+  --color-primary-hover: #362cab;
+  --color-primary-contrast: #ffffff;
+  --color-accent: #4338ca;        /* single accent — same as primary */
+  --color-accent-soft: #e7e6fb;
+  --color-border: #d6dae2;
+  --color-primary-soft: #e7e6fb;
+  --color-danger: #c2362b;
+  --color-danger-soft: #f7dedb;
+
+  /* Tight modern sans for both body and display. */
+  --font-sans: "Inter var", "SF Pro Text", "Segoe UI", system-ui,
+    -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Inter var", "SF Pro Display", "Segoe UI", system-ui,
+    -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+  --weight-medium: 530;
+  --weight-bold: 680;
+
+  /* Slightly less rounding. */
+  --radius-sm: 0.25rem;  /* 4px  */
+  --radius-md: 0.5rem;   /* 8px  */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-pill: 0.5rem; /* squared "tags", not pills */
+
+  --border-checkbox: 0.125rem; /* 2px */
+
+  /* Crisper, cooler, tighter shadows. */
+  --shadow-sm: 0 1px 2px rgba(17, 21, 28, 0.08);
+  --shadow-md: 0 6px 18px -8px rgba(17, 21, 28, 0.22);
+
+  --focus-ring-color: var(--color-primary);
 }

@@ -12,6 +12,7 @@
 // on first paint and on every interaction — see renderTable() below.
 import { chartForAge } from '../lib/generator-core'
 import { buildPrintableChartModel } from '../lib/printable-chart'
+import { choreIconSvg, iconSvg } from '../lib/chore-icons'
 
 const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: undefined })
 ---
@@ -50,10 +51,14 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
   <!-- Live chart preview -------------------------------------------------- -->
   <!-- The default age-6 chart is server-rendered here for SEO / no-JS users.
        The island script (renderTable) replaces this with an identical table on
-       first paint and re-renders it on every interaction. -->
+       first paint and re-renders it on every interaction. Per-chore icons are
+       inlined from chore-icons.ts so SSR and the island markup match exactly. -->
   <div class="generator__preview" id="ccg-preview" aria-live="polite">
     <table class="chart-table" role="table" aria-label={initialModel.title}>
-      <caption class="chart-table__title" id="ccg-chart-title">{initialModel.title}</caption>
+      <caption class="chart-table__title" id="ccg-chart-title">
+        <span class="chart-table__title-icon" set:html={iconSvg('calendar-check')} />
+        <span class="chart-table__title-text">{initialModel.title}</span>
+      </caption>
       <thead>
         <tr>
           {initialModel.columns.map((col) => (
@@ -69,7 +74,10 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
       <tbody>
         {initialModel.rows.map((row) => (
           <tr class="chart-table__row">
-            <td class="chart-table__chore">{row.chore}</td>
+            <td class="chart-table__chore">
+              <span class="chart-table__chore-icon" set:html={choreIconSvg(row.id)} />
+              <span class="chart-table__chore-label">{row.chore}</span>
+            </td>
             {initialModel.columns.slice(1).map((day) => (
               <td class="chart-table__check-cell">
                 <input
@@ -102,7 +110,10 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
           maxlength="60"
           aria-describedby="ccg-new-chore-hint"
         />
-        <button class="btn btn--secondary" id="ccg-add-btn" type="button">Add</button>
+        <button class="btn btn--secondary" id="ccg-add-btn" type="button">
+          <span class="btn__icon" set:html={iconSvg('plus')} />
+          <span>Add</span>
+        </button>
       </div>
       <span id="ccg-new-chore-hint" class="control-hint">Press Add or Enter to add to the chart</span>
     </div>
@@ -111,7 +122,8 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
   <!-- Print action -------------------------------------------------------- -->
   <div class="generator__actions">
     <button class="btn btn--primary btn--large" id="ccg-print-btn" type="button">
-      Print / Save as PDF
+      <span class="btn__icon" set:html={iconSvg('printer')} />
+      <span>Print / Save as PDF</span>
     </button>
   </div>
 </section>
@@ -125,6 +137,7 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
   import { buildPrintableChartModel } from '../lib/printable-chart'
   import { createMetrics, gaSend, EVENTS } from '../lib/metrics'
   import { getVariant } from '../lib/variant-config'
+  import { choreIconSvg, iconSvg } from '../lib/chore-icons'
 
   // ---- Metrics setup -------------------------------------------------------
   const metrics = createMetrics({
@@ -205,11 +218,20 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     table.setAttribute('aria-label', model.title)
 
     // Caption (also the visible title for print). Tagged so a name-only change
-    // can update just this node without rebuilding the table.
+    // can update just this node without rebuilding the table. The leading icon
+    // matches the SSR caption markup; the title text lives in its own span so
+    // updateTitle() can swap just the text without disturbing the icon.
     const caption = document.createElement('caption')
     caption.className = 'chart-table__title'
     caption.id = 'ccg-chart-title'
-    caption.textContent = model.title
+    const captionIcon = document.createElement('span')
+    captionIcon.className = 'chart-table__title-icon'
+    captionIcon.innerHTML = iconSvg('calendar-check')
+    const captionText = document.createElement('span')
+    captionText.className = 'chart-table__title-text'
+    captionText.textContent = model.title
+    caption.appendChild(captionIcon)
+    caption.appendChild(captionText)
     table.appendChild(caption)
 
     // Header row
@@ -242,7 +264,14 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
 
         const choreCell = document.createElement('td')
         choreCell.className = 'chart-table__chore'
-        choreCell.textContent = row.chore
+        const choreIcon = document.createElement('span')
+        choreIcon.className = 'chart-table__chore-icon'
+        choreIcon.innerHTML = choreIconSvg(row.id)
+        const choreLabel = document.createElement('span')
+        choreLabel.className = 'chart-table__chore-label'
+        choreLabel.textContent = row.chore
+        choreCell.appendChild(choreIcon)
+        choreCell.appendChild(choreLabel)
         tr.appendChild(choreCell)
 
         // Day checkbox cells (one per day column)
@@ -275,9 +304,10 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
   function updateTitle() {
     const title = currentTitle()
     const caption = document.getElementById('ccg-chart-title')
+    const titleText = caption?.querySelector('.chart-table__title-text')
     const table = preview.querySelector('table')
-    if (caption && table) {
-      caption.textContent = title
+    if (caption && titleText && table) {
+      titleText.textContent = title
       table.setAttribute('aria-label', title)
     } else {
       renderTable()
@@ -293,6 +323,10 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
       const li = document.createElement('li')
       li.className = 'chore-item'
 
+      const icon = document.createElement('span')
+      icon.className = 'chore-item__icon'
+      icon.innerHTML = choreIconSvg(chore.id)
+
       const label = document.createElement('span')
       label.className = 'chore-item__label'
       label.textContent = chore.label
@@ -301,7 +335,9 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
       removeBtn.type = 'button'
       removeBtn.className = 'btn chore-item__remove'
       removeBtn.setAttribute('aria-label', `Remove "${chore.label}"`)
-      removeBtn.textContent = '✕'
+      // Icon-only remove button: the × glyph is an inline Lucide SVG (decorative,
+      // aria-hidden); the accessible name comes from the aria-label above.
+      removeBtn.innerHTML = iconSvg('x', 'chore-item__remove-icon')
       removeBtn.addEventListener('click', () => {
         trackStart()
         if (customChores === null) {
@@ -311,6 +347,7 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
         renderChoreSet()
       })
 
+      li.appendChild(icon)
       li.appendChild(label)
       li.appendChild(removeBtn)
       choreList.appendChild(li)
@@ -384,7 +421,30 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
 <style>
   /* =========================================================================
      Generator island — tokens only; NO hardcoded hex/rgb/px.
+
+     Structure is shared across all themes; each :root[data-theme="..."] block
+     below (sprout / playful / modern) re-skins it via tokens AND a few
+     structural overrides so the directions feel genuinely distinct, not just
+     recoloured. The `control` theme uses the base rules unchanged.
   ========================================================================= */
+
+  /* ---- Inline icons (build-time SVG, currentColor) ---------------------- */
+  .icon {
+    width: var(--icon-size, var(--space-5));
+    height: var(--icon-size, var(--space-5));
+    display: block;
+    color: currentColor;
+  }
+  /* set:html wrappers shouldn't add baseline wobble. */
+  .btn__icon,
+  .chart-table__title-icon,
+  .chart-table__chore-icon,
+  .chore-item__icon,
+  .chore-item__remove-icon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
 
   .generator {
     background-color: var(--color-surface);
@@ -498,18 +558,26 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     padding-bottom: var(--space-4);
     caption-side: top;
     line-height: var(--leading-snug);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
   }
 
+  .chart-table__title-icon {
+    color: var(--color-primary);
+    --icon-size: var(--space-6);
+  }
+
+  /* Colored header band — a solid sprout/brand-tinted strip, not a hairline. */
   .chart-table__th {
-    padding: var(--space-2) var(--space-2);
+    padding: var(--space-3) var(--space-2);
     text-align: center;
     font-size: var(--text-xs);
     font-weight: var(--weight-bold);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--color-muted);
-    background-color: var(--color-primary-soft);
-    border-bottom: var(--border-width) solid var(--color-border);
+    color: var(--color-primary-contrast);
+    background-color: var(--color-primary);
     white-space: nowrap;
   }
 
@@ -526,14 +594,14 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
 
   .chart-table__th--chore {
     text-align: left;
-    color: var(--color-text);
-    padding-left: var(--space-3);
-    width: 38%;
+    padding-left: var(--space-4);
+    width: 40%;
   }
 
-  .chart-table__row + .chart-table__row .chart-table__chore,
-  .chart-table__row + .chart-table__row .chart-table__check-cell {
-    border-top: var(--border-width) solid var(--color-border);
+  /* Gentle separation + row tints — reads as a printable chart, not a sheet. */
+  .chart-table__row .chart-table__chore,
+  .chart-table__row .chart-table__check-cell {
+    border-bottom: var(--border-width) solid var(--color-border);
   }
 
   .chart-table__row:nth-child(even) .chart-table__chore,
@@ -542,11 +610,22 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
   }
 
   .chart-table__chore {
-    padding: var(--space-3) var(--space-3);
+    padding: var(--space-3) var(--space-4);
     color: var(--color-text);
     font-weight: var(--weight-medium);
     vertical-align: middle;
     line-height: var(--leading-snug);
+  }
+
+  .chart-table__chore-icon {
+    --icon-size: var(--space-5);
+    color: var(--color-primary);
+    margin-right: var(--space-3);
+    vertical-align: middle;
+  }
+
+  .chart-table__chore-label {
+    vertical-align: middle;
   }
 
   .chart-table__check-cell {
@@ -555,23 +634,24 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     vertical-align: middle;
   }
 
-  /* Custom tick-box — mirrors the article checklist::before square, but a real
-     keyboard-operable checkbox styled via appearance:none + :checked + focus. */
+  /* Big friendly rounded tick-box — a real keyboard-operable checkbox styled
+     via appearance:none + a CSS check glyph on :checked + a focus ring. */
   .chart-table__checkbox {
     appearance: none;
     -webkit-appearance: none;
-    width: var(--space-5);
-    height: var(--space-5);
+    width: var(--space-6);
+    height: var(--space-6);
     margin: var(--space-0);
     flex-shrink: 0;
-    border: var(--border-width) solid var(--color-primary);
-    border-radius: var(--radius-sm);
+    border: var(--border-checkbox) solid var(--color-primary);
+    border-radius: var(--radius-md);
     background-color: var(--color-accent-soft);
     cursor: pointer;
     display: inline-grid;
     place-content: center;
     transition:
       background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
       box-shadow var(--duration-fast) var(--ease-out);
   }
 
@@ -579,7 +659,7 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
   .chart-table__checkbox::before {
     content: '';
     width: var(--space-2);
-    height: var(--space-3);
+    height: var(--space-4);
     border: solid var(--color-primary-contrast);
     border-width: var(--border-checkmark);
     border-top: var(--space-0);
@@ -591,6 +671,7 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
 
   .chart-table__checkbox:hover {
     background-color: var(--color-accent);
+    transform: scale(1.05);
   }
 
   .chart-table__checkbox:checked {
@@ -642,7 +723,7 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     gap: var(--space-2);
   }
 
-  /* Each chore is a rounded chip: label + circular remove button. */
+  /* Each chore is a rounded chip: icon + label + circular icon remove button. */
   .chore-item {
     display: inline-flex;
     align-items: center;
@@ -651,11 +732,18 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     border-radius: var(--radius-pill);
     padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
     border: var(--border-width) solid var(--color-border);
-    transition: border-color var(--duration-fast) var(--ease-out);
+    transition:
+      border-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
   }
 
   .chore-item:hover {
     border-color: var(--color-accent);
+  }
+
+  .chore-item__icon {
+    --icon-size: var(--space-4);
+    color: var(--color-primary);
   }
 
   .chore-item__label {
@@ -665,18 +753,20 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     line-height: var(--leading-snug);
   }
 
-  /* Circular remove button — overrides the base .btn padding/shape. */
+  /* Circular icon-only remove button — overrides the base .btn padding/shape. */
   .chore-item__remove {
     flex-shrink: 0;
     width: var(--space-5);
     height: var(--space-5);
     padding: var(--space-0);
     border-radius: var(--radius-pill);
-    font-size: var(--text-sm);
-    line-height: 1;
     color: var(--color-muted);
     background-color: var(--color-surface);
     border-color: var(--color-border);
+  }
+
+  .chore-item__remove-icon {
+    --icon-size: var(--space-4);
   }
 
   .chore-item__remove:hover,
@@ -730,6 +820,10 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
   }
 
+  .btn__icon {
+    --icon-size: var(--space-5);
+  }
+
   .btn--primary {
     background-color: var(--color-primary);
     color: var(--color-primary-contrast);
@@ -769,5 +863,107 @@ const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: un
     justify-content: flex-end;
     border-top: var(--border-width) solid var(--color-border);
     padding-top: var(--space-5);
+  }
+
+  /* =========================================================================
+     DIRECTION-SPECIFIC STRUCTURE
+     -------------------------------------------------------------------------
+     Beyond the palette/type/radius tokens (set per theme in tokens.css), each
+     direction tweaks a little STRUCTURE so they don't all look like the same
+     layout in different colours. Keyed off the global :root[data-theme] so the
+     scope hash still applies to the component selectors.
+  ========================================================================= */
+
+  /* PLAYFUL — kid-bright & chunky: spaced-out "card" rows with their own
+     rounded outline, oversized icons/tick-boxes, a thick accent under-band. */
+  :root[data-theme='playful'] .chart-table {
+    border-spacing: 0 var(--space-2);
+    border-collapse: separate;
+  }
+  :root[data-theme='playful'] .chart-table__chore,
+  :root[data-theme='playful'] .chart-table__check-cell {
+    border-bottom: var(--space-0);
+    background-color: var(--color-surface);
+  }
+  :root[data-theme='playful'] .chart-table__row .chart-table__chore {
+    border-top-left-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    border-block: var(--border-width) solid var(--color-border);
+    border-left: var(--border-width) solid var(--color-border);
+  }
+  :root[data-theme='playful'] .chart-table__row .chart-table__check-cell:last-child {
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+    border-right: var(--border-width) solid var(--color-border);
+  }
+  :root[data-theme='playful'] .chart-table__row .chart-table__check-cell {
+    border-block: var(--border-width) solid var(--color-border);
+  }
+  :root[data-theme='playful'] .chart-table__row:nth-child(even) .chart-table__chore,
+  :root[data-theme='playful'] .chart-table__row:nth-child(even) .chart-table__check-cell {
+    background-color: var(--color-accent-soft);
+  }
+  :root[data-theme='playful'] .chart-table__chore-icon {
+    --icon-size: var(--space-6);
+    color: var(--color-accent);
+  }
+  :root[data-theme='playful'] .chart-table__checkbox {
+    width: var(--space-7);
+    height: var(--space-7);
+  }
+  :root[data-theme='playful'] .chore-item {
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+  :root[data-theme='playful'] .chore-item__icon {
+    --icon-size: var(--space-5);
+    color: var(--color-accent);
+  }
+
+  /* MODERN — crisp product/tool: dense, flat, hairline grid. No row tints, no
+     pill chips — square-ish tags, a single accent, tighter rows. */
+  :root[data-theme='modern'] .generator {
+    box-shadow: var(--shadow-sm);
+  }
+  :root[data-theme='modern'] .chart-table__th {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--text-sm);
+    border-radius: var(--space-0);
+  }
+  :root[data-theme='modern'] .chart-table__th:first-child,
+  :root[data-theme='modern'] .chart-table__th:last-child {
+    border-radius: var(--space-0);
+  }
+  :root[data-theme='modern'] .chart-table__chore,
+  :root[data-theme='modern'] .chart-table__check-cell {
+    padding-block: var(--space-2);
+  }
+  :root[data-theme='modern'] .chart-table__row:nth-child(even) .chart-table__chore,
+  :root[data-theme='modern'] .chart-table__row:nth-child(even) .chart-table__check-cell {
+    background-color: var(--color-surface);
+  }
+  :root[data-theme='modern'] .chart-table__checkbox {
+    border-radius: var(--radius-sm);
+  }
+  :root[data-theme='modern'] .chore-item {
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-sunken);
+  }
+  :root[data-theme='modern'] .chore-item__remove {
+    border-radius: var(--radius-sm);
+  }
+
+  /* SPROUT — refined garden: the base look already leans this way; nudge the
+     chart toward an editorial, generously-rounded card with a soft inset. */
+  :root[data-theme='sprout'] .generator__preview {
+    background: var(--color-accent-soft);
+  }
+  :root[data-theme='sprout'] .chart-table__chore {
+    font-family: var(--font-display);
+    font-weight: var(--weight-medium);
+  }
+  :root[data-theme='sprout'] .chore-item {
+    background-color: var(--color-surface);
   }
 </style>
