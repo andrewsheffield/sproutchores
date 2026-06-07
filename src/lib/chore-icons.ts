@@ -45,7 +45,7 @@ export const ICON_BODY: Record<string, string> = {
   dot: '<circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
 }
 
-/** Map a chore id to a Lucide icon name. Unknown ids fall back to `dot`. */
+/** Map a chore id to a Lucide icon name (fast-path override for known ids). */
 export const CHORE_ICON: Record<string, string> = {
   // 4-5 band
   'put-toys-away': 'sparkles',
@@ -65,9 +65,38 @@ export const CHORE_ICON: Record<string, string> = {
   'pack-backpack': 'backpack',
 }
 
-/** Resolve the icon name for a chore id (custom/unknown ids → a neutral dot). */
-export function iconNameForChore(id: string): string {
-  return CHORE_ICON[id] ?? 'dot'
+/**
+ * Keyword → icon rules, evaluated in order against the lowercased chore LABEL.
+ * This is what makes arbitrary user-typed chores resolve to a sensible icon
+ * (the id-map above is only a fast-path for the built-in dataset ids).
+ * First matching rule wins, so order more-specific words before generic ones.
+ */
+const KEYWORD_RULES: ReadonlyArray<readonly [readonly string[], string]> = [
+  [['bed', 'sleep', 'nap', 'pillow', 'blanket'], 'bed'],
+  [['dish', 'dishwasher'], 'washing-machine'],
+  [['table', 'plate', 'cutlery', 'fork', 'spoon', 'meal', 'dinner', 'lunch', 'breakfast'], 'utensils'],
+  [['pet', 'dog', 'cat', 'fish', 'hamster', 'rabbit', 'feed', 'bird'], 'cat'],
+  [['laundry', 'clothes', 'fold', 'hamper', 'wash clothes', 'socks', 'shirt'], 'shirt'],
+  [['recycl', 'trash', 'garbage', 'bin', 'rubbish', 'compost'], 'trash-2'],
+  [['vacuum', 'sweep', 'mop', 'dust', 'wipe', 'scrub', 'clean', 'tidy', 'room'], 'brush-cleaning'],
+  [['toy', 'play', 'sparkle', 'sort', 'organi'], 'sparkles'],
+  [['plant', 'water', 'garden', 'flower', 'grow'], 'sprout'],
+  [['homework', 'read', 'book', 'school', 'backpack', 'study', 'pack'], 'backpack'],
+]
+
+/**
+ * Resolve an icon name from a chore. Prefers the id fast-path, then matches
+ * keywords in the label, and falls back to a real, neutral icon (never a bare
+ * dot) so custom chores always get a meaningful glyph.
+ */
+export function iconNameForChore(id: string, label?: string): string {
+  const fast = CHORE_ICON[id]
+  if (fast) return fast
+  const haystack = (label ?? id).toLowerCase()
+  for (const [words, icon] of KEYWORD_RULES) {
+    if (words.some((w) => haystack.includes(w))) return icon
+  }
+  return 'clipboard-list'
 }
 
 /**
@@ -84,7 +113,7 @@ export function iconSvg(name: string, cls = ''): string {
   )
 }
 
-/** Convenience: the inline SVG for a chore id. */
-export function choreIconSvg(id: string, cls = ''): string {
-  return iconSvg(iconNameForChore(id), cls)
+/** Convenience: the inline SVG for a chore, resolved from its id + label. */
+export function choreIconSvg(id: string, label?: string, cls = ''): string {
+  return iconSvg(iconNameForChore(id, label), cls)
 }

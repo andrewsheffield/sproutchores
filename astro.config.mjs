@@ -9,9 +9,7 @@ export default defineConfig({
     // astro-icon inlines SVG at build time (zero client JS). Icons are pulled
     // from the locally-installed @iconify-json/lucide pack.
     icon({ include: { lucide: ['*'] } }),
-    // The sitemap integration lists every built route. We exclude the temporary
-    // /preview/* theme-comparison scaffolding (noindex) so we never advertise
-    // not-yet-live preview URLs as canonical.
-    sitemap({ filter: (page) => !page.includes('/preview/') }),
+    // Lists every built route. Only the home + live chore page exist today.
+    sitemap(),
   ],
 })

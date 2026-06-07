@@ -17,26 +17,14 @@ export interface Props {
   ogImage?: string
   /** Structured data rendered into a <script type="application/ld+json">. */
   jsonLd?: JsonLd
-  /**
-   * Force a specific data-theme, overriding getVariant(). Used ONLY by the
-   * temporary /preview/* theme-comparison routes so each renders the same
-   * content under a different skin. Production pages omit it and get the
-   * active variant. Remove once a direction is picked.
-   */
-  theme?: string
-  /** Emit a noindex,nofollow robots meta (used by the temporary preview routes). */
-  noindex?: boolean
 }
 
-const { title, description, canonical, ogImage, jsonLd, theme: themeOverride, noindex } = Astro.props
+const { title, description, canonical, ogImage, jsonLd } = Astro.props
 
-// The active variant drives the metrics tag (data-variant) — one source of
-// truth via getVariant(). The data-theme normally mirrors it, but a preview
-// route may force a different skin via the `theme` prop. The metrics variant
-// tag still reflects the REAL active variant so preview traffic isn't
-// mislabelled as a live A/B cohort.
+// The active variant drives BOTH the theme token-set (data-theme) and the
+// metrics tag (data-variant). One source of truth: getVariant().
 const variant = getVariant()
-const theme = themeOverride ?? variant // control theme maps 1:1 to control variant for now
+const theme = variant
 
 // Canonical: prefer the explicit prop, else derive from the configured site.
 const canonicalUrl =
@@ -85,8 +73,6 @@ const isActive = (href: string) => normalisePath(href) === currentPath
 
     <title>{title}</title>
     <meta name="description" content={description} />
-    {/* Preview/scaffolding routes pass noindex so search engines skip them. */}
-    {noindex && <meta name="robots" content="noindex,nofollow" />}
     <link rel="canonical" href={canonicalUrl} />
 
     {/* Open Graph */}

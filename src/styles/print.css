@@ -22,10 +22,18 @@
     display: none !important;
   }
 
-  /* Generator controls (age input, name input, add-chore row) */
+  /* Generator controls (age input, name input) and the print action */
   .generator__controls,
-  .generator__chore-editor,
   .generator__actions {
+    display: none !important;
+  }
+
+  /* Editing affordances live inside the chart now — hide them on paper:
+     the per-row remove column and the add-a-chore footer row. */
+  .chart-table__th--action,
+  .chart-table__action-cell,
+  .chart-table__remove,
+  .chart-add-row {
     display: none !important;
   }
 
