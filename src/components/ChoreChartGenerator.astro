@@ -81,8 +81,10 @@ const dayColumns = initialModel.columns.slice(1)
         {initialModel.rows.map((row) => (
           <tr class="chart-table__row">
             <td class="chart-table__chore">
-              <span class="chart-table__chore-icon" set:html={choreIconSvg(row.id, row.chore)} />
-              <span class="chart-table__chore-label">{row.chore}</span>
+              <div class="chart-table__chore-cell-inner">
+                <span class="chart-table__chore-icon" set:html={choreIconSvg(row.id, row.chore)} />
+                <span class="chart-table__chore-label">{row.chore}</span>
+              </div>
             </td>
             {dayColumns.map((day) => (
               <td class="chart-table__check-cell">
@@ -287,17 +289,20 @@ const dayColumns = initialModel.columns.slice(1)
         const tr = document.createElement('tr')
         tr.className = 'chart-table__row'
 
-        // Chore cell: icon + label.
+        // Chore cell: icon + label (wrapped so they share a flex gap).
         const choreCell = document.createElement('td')
         choreCell.className = 'chart-table__chore'
+        const choreInner = document.createElement('div')
+        choreInner.className = 'chart-table__chore-cell-inner'
         const choreIcon = document.createElement('span')
         choreIcon.className = 'chart-table__chore-icon'
         choreIcon.innerHTML = choreIconSvg(row.id, row.chore)
         const choreLabel = document.createElement('span')
         choreLabel.className = 'chart-table__chore-label'
         choreLabel.textContent = row.chore
-        choreCell.appendChild(choreIcon)
-        choreCell.appendChild(choreLabel)
+        choreInner.appendChild(choreIcon)
+        choreInner.appendChild(choreLabel)
+        choreCell.appendChild(choreInner)
         tr.appendChild(choreCell)
 
         // Day checkbox cells (one per day column).
@@ -333,6 +338,9 @@ const dayColumns = initialModel.columns.slice(1)
     const addCell = addInputRow.querySelector('td')
     if (addCell) addCell.colSpan = dayColumns.length + 2
 
+    // Keep suggestions in sync: only offer chores not already on the chart.
+    refreshSuggestions()
+
     maybeTrackComplete(chores.length)
   }
 
@@ -346,15 +354,22 @@ const dayColumns = initialModel.columns.slice(1)
     if (table) table.setAttribute('aria-label', title)
   }
 
-  // ---- Refresh the age-band suggestion datalist ----------------------------
+  // ---- Refresh the suggestion datalist -------------------------------------
+  // Pool = the current age band's default chores; EXCLUDE any already on the
+  // chart (case-insensitive, trimmed) so the dropdown only offers not-yet-added
+  // options. Called from renderChartBody() so it stays in sync on add/remove/
+  // age change.
   function refreshSuggestions() {
-    const labels = chartForAge(currentAge).chores.map((c) => c.label)
+    const present = new Set(getEffectiveChores().map((c) => c.label.trim().toLowerCase()))
+    const pool = chartForAge(currentAge).chores.map((c) => c.label)
     suggestions.innerHTML = ''
-    labels.forEach((label) => {
-      const opt = document.createElement('option')
-      opt.value = label
-      suggestions.appendChild(opt)
-    })
+    pool
+      .filter((label) => !present.has(label.trim().toLowerCase()))
+      .forEach((label) => {
+        const opt = document.createElement('option')
+        opt.value = label
+        suggestions.appendChild(opt)
+      })
   }
 
   // ---- Event: age change ---------------------------------------------------
@@ -369,7 +384,6 @@ const dayColumns = initialModel.columns.slice(1)
     currentAge = clamped
     // Reset custom chores on age change so defaults for the new band apply.
     customChores = null
-    refreshSuggestions()
     renderChartBody()
   })
 
@@ -386,6 +400,16 @@ const dayColumns = initialModel.columns.slice(1)
     trackStart()
     if (customChores === null) {
       customChores = getEffectiveChores().slice()
+    }
+    // Block duplicates (case-insensitive, trimmed): no-op, clear, announce.
+    const exists = customChores.some(
+      (c) => c.label.trim().toLowerCase() === label.toLowerCase(),
+    )
+    if (exists) {
+      newChoreIn.value = ''
+      announce(`${label} is already on the chart`)
+      newChoreIn.focus()
+      return
     }
     const id = `custom-${++customChoreSeq}`
     customChores = [...customChores, { id, label }]
@@ -413,7 +437,7 @@ const dayColumns = initialModel.columns.slice(1)
   // ---- Initial render ------------------------------------------------------
   // Renders the default chart WITHOUT firing GENERATOR_COMPLETE (no interaction
   // yet): maybeTrackComplete() is guarded by startFired, which is still false.
-  refreshSuggestions()
+  // renderChartBody() also builds the initial (exclusion-aware) datalist.
   renderChartBody()
 
 </script>
@@ -619,19 +643,24 @@ const dayColumns = initialModel.columns.slice(1)
     padding: var(--space-2) var(--space-4);
     color: var(--color-text);
     font-weight: var(--weight-medium);
-    vertical-align: middle;
     line-height: var(--leading-snug);
+  }
+
+  /* Icon + label as a flex pair so they're vertically centred with a clear,
+     consistent gap (icon shouldn't crowd the label). */
+  .chart-table__chore-cell-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
   }
 
   .chart-table__chore-icon {
     --icon-size: var(--space-5);
     color: var(--color-primary);
-    margin-right: var(--space-3);
-    vertical-align: middle;
   }
 
   .chart-table__chore-label {
-    vertical-align: middle;
+    min-width: 0;
   }
 
   .chart-table__check-cell {
@@ -641,17 +670,21 @@ const dayColumns = initialModel.columns.slice(1)
     vertical-align: middle;
   }
 
-  /* Custom day tick-box — appearance:none, a crisp rounded square sized via
-     tokens, centred in its cell, with a clear :checked + :focus-visible state.
-     Real keyboard-operable <input type="checkbox"> (styled, never replaced). */
+  /* Custom day tick-box — a crisp, INTENTIONAL square (never a native circle):
+     appearance:none with a small radius (--radius-sm, kept well below half the
+     box size), a high-contrast outline (--color-checkbox-border at
+     --border-checkbox), surface fill, and a clear filled + white-check :checked
+     state. Real keyboard-operable <input type="checkbox"> (styled, never
+     replaced). Centred in its cell. */
   .chart-table__checkbox {
     appearance: none;
     -webkit-appearance: none;
+    box-sizing: border-box;
     width: var(--space-5);
     height: var(--space-5);
     margin-inline: auto;
     margin-block: var(--space-0);
-    border: var(--border-checkbox) solid var(--color-primary);
+    border: var(--border-checkbox) solid var(--color-checkbox-border);
     border-radius: var(--radius-sm);
     background-color: var(--color-surface);
     cursor: pointer;
@@ -659,25 +692,27 @@ const dayColumns = initialModel.columns.slice(1)
     place-content: center;
     transition:
       background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
       box-shadow var(--duration-fast) var(--ease-out);
   }
 
-  /* Check glyph drawn as a CSS tick (no asset); revealed on :checked. */
+  /* Check glyph drawn as a CSS tick (no asset); revealed on :checked. Sized to
+     read clearly inside the ~1.5rem box. */
   .chart-table__checkbox::before {
     content: '';
     width: var(--space-2);
-    height: var(--space-3);
+    height: var(--space-4);
     border: solid var(--color-primary-contrast);
     border-width: var(--border-checkmark);
     border-top: var(--space-0);
     border-left: var(--space-0);
-    transform: rotate(40deg) scale(0);
+    transform: rotate(40deg) translateY(calc(-1 * var(--space-px))) scale(0);
     transform-origin: center;
     transition: transform var(--duration-fast) var(--ease-out);
   }
 
   .chart-table__checkbox:hover {
-    background-color: var(--color-accent-soft);
+    border-color: var(--color-primary);
   }
 
   .chart-table__checkbox:checked {
@@ -686,7 +721,7 @@ const dayColumns = initialModel.columns.slice(1)
   }
 
   .chart-table__checkbox:checked::before {
-    transform: rotate(40deg) scale(1);
+    transform: rotate(40deg) translateY(calc(-1 * var(--space-px))) scale(1);
   }
 
   .chart-table__checkbox:focus-visible {
@@ -702,7 +737,10 @@ const dayColumns = initialModel.columns.slice(1)
   }
 
   /* A real <button> with a min 44x44 hit target, muted by default, danger on
-     hover/focus. The trash icon inside is decorative (aria-hidden). */
+     hover/focus. The trash icon inside is decorative (aria-hidden).
+     Hidden by default and revealed on row hover / focus-within (and when the
+     button itself is focused) — uses opacity+visibility (NOT display) so it
+     stays in the a11y tree and Tab-focusable for keyboard users. */
   .chart-table__remove {
     width: var(--space-7);
     height: var(--space-7);
@@ -714,6 +752,23 @@ const dayColumns = initialModel.columns.slice(1)
     color: var(--color-muted);
     background-color: transparent;
     border-color: transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      visibility var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+
+  /* Reveal on row hover, row focus-within (keyboard), or button focus. */
+  .chart-table__row:hover .chart-table__remove,
+  .chart-table__row:focus-within .chart-table__remove,
+  .chart-table__remove:focus,
+  .chart-table__remove:focus-visible {
+    opacity: 1;
+    visibility: visible;
   }
 
   .chart-table__remove-icon {

@@ -42,6 +42,7 @@
   --color-primary-soft: #e6f0ea;  /* faint sprout-green tint for header rows */
   --color-danger: #b4452f;        /* muted terracotta for destructive hover */
   --color-danger-soft: #f7e3dd;   /* terracotta tint wash */
+  --color-checkbox-border: #8a8475; /* mid-dark neutral — visible tick-box outline on surface */
 
   /* Typography — system stack: zero network cost, no render-blocking, CWV-safe.
      A rounded-friendly sans for body/UI; the same stack with tighter tracking
@@ -142,6 +143,7 @@
   --color-primary-soft: #e7e6fb;
   --color-danger: #c2362b;
   --color-danger-soft: #f7dedb;
+  --color-checkbox-border: #6b7280; /* mid-dark slate — crisp, high-contrast tick-box outline */
 
   /* Tight modern sans for both body and display. */
   --font-sans: "Inter var", "SF Pro Text", "Segoe UI", system-ui,
