@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "shots": "bash scripts/shots.sh",
+    "shots:watch": "bash scripts/shots-watch.sh",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
