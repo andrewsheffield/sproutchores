@@ -30,23 +30,21 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: seo-test/site/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
-        working-directory: seo-test/site
         run: npm ci
 
       - name: Build site
-        working-directory: seo-test/site
         run: npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: seo-test/site/dist
+          path: dist
 
   deploy:
     name: Deploy to GitHub Pages
