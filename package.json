@@ -8,6 +8,12 @@
     "preview": "astro preview",
     "test": "vitest run --passWithNoTests"
   },
-  "dependencies": { "astro": "^6", "web-vitals": "^5" },
-  "devDependencies": { "vitest": "^3" }
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^6",
+    "web-vitals": "^5"
+  },
+  "devDependencies": {
+    "vitest": "^3"
+  }
 }

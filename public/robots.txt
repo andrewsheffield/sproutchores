@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sproutchores.com/sitemap-index.xml

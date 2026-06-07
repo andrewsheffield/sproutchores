@@ -5,6 +5,15 @@
 //
 // No UI framework; vanilla TS in the <script> block so Astro bundles it as a
 // small island chunk (CWV-safe).
+//
+// SEO / progressive enhancement: the DEFAULT age-6 chart is rendered server-
+// side here so the primary content (the chart) is in the static HTML for
+// crawlers and no-JS users. The client island re-renders the same structure
+// on first paint and on every interaction — see renderTable() below.
+import { chartForAge } from '../lib/generator-core'
+import { buildPrintableChartModel } from '../lib/printable-chart'
+
+const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: undefined })
 ---
 
 <section class="generator" aria-label="Chore Chart Generator">
@@ -39,8 +48,41 @@
   </div>
 
   <!-- Live chart preview -------------------------------------------------- -->
+  <!-- The default age-6 chart is server-rendered here for SEO / no-JS users.
+       The island script (renderTable) replaces this with an identical table on
+       first paint and re-renders it on every interaction. -->
   <div class="generator__preview" id="ccg-preview" aria-live="polite">
-    <!-- Rendered by the island script on first paint and on every change. -->
+    <table class="chart-table" role="table" aria-label={initialModel.title}>
+      <caption class="chart-table__title" id="ccg-chart-title">{initialModel.title}</caption>
+      <thead>
+        <tr>
+          {initialModel.columns.map((col) => (
+            <th
+              scope="col"
+              class={col === 'Chore'
+                ? 'chart-table__th chart-table__th--chore'
+                : 'chart-table__th chart-table__th--day'}
+            >{col}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {initialModel.rows.map((row) => (
+          <tr class="chart-table__row">
+            <td class="chart-table__chore">{row.chore}</td>
+            {initialModel.columns.slice(1).map((day) => (
+              <td class="chart-table__check-cell">
+                <input
+                  type="checkbox"
+                  class="chart-table__checkbox"
+                  aria-label={`${row.chore} — ${day}`}
+                />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 
   <!-- Chore management ---------------------------------------------------- -->

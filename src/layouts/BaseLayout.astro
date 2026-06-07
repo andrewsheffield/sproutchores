@@ -19,7 +19,7 @@ export interface Props {
   jsonLd?: JsonLd
 }
 
-const { title, description, canonical, ogImage = '/og-default.png', jsonLd } = Astro.props
+const { title, description, canonical, ogImage, jsonLd } = Astro.props
 
 // The active variant drives BOTH the theme token-set (data-theme) and the
 // metrics tag (data-variant). One source of truth: getVariant().
@@ -30,13 +30,17 @@ const theme = variant // control theme maps 1:1 to the control variant for now
 const canonicalUrl =
   canonical ?? (Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.href)
 
-// Absolute social image URL (OG/Twitter want absolute URLs).
+// Absolute social image URL (OG/Twitter want absolute URLs). Emitted only when
+// an ogImage prop is actually passed — we don't invent a default image, so a
+// page without one omits og:image/twitter:image entirely (no 404'ing tag).
 const ogImageUrl =
-  /^https?:\/\//.test(ogImage)
-    ? ogImage
-    : Astro.site
-      ? new URL(ogImage, Astro.site).href
-      : new URL(ogImage, Astro.url).href
+  ogImage === undefined
+    ? undefined
+    : /^https?:\/\//.test(ogImage)
+      ? ogImage
+      : Astro.site
+        ? new URL(ogImage, Astro.site).href
+        : new URL(ogImage, Astro.url).href
 
 // Only emit JSON-LD when it carries the required shape; escape `<` so values
 // containing `</script>` (or any markup) can't break out of the script tag.
@@ -65,11 +69,11 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="SproutChores" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content={ogImageUrl} />
-    <meta name="twitter:card" content="summary_large_image" />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    <meta name="twitter:card" content={ogImageUrl ? 'summary_large_image' : 'summary'} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImageUrl} />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
 
     {/* JSON-LD: only when valid; `<` escaped so values can't close the tag. */}
     {hasValidJsonLd && (
