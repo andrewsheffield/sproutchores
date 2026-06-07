@@ -42,6 +42,19 @@ export const ICON_BODY: Record<string, string> = {
     '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14" rx="1"/></g>',
   check:
     '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"/>',
+  // Friendly neutral default for unmatched chores (warmer than a clipboard).
+  star: '<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/>',
+  // Water / bath / teeth / hygiene.
+  droplets:
+    '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M7 16.3c2.2 0 4-1.83 4-4.05c0-1.16-.57-2.26-1.71-3.19S7.29 4.7 7 2.75c-.29 1.95-1.14 4.6-2.29 6.31S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05Z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></g>',
+  // Reading / books / study.
+  'book-open':
+    '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4a4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3a3 3 0 0 0-3-3z"/></g>',
+  // Dog / walking the dog.
+  dog: '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M11.25 16.25h1.5L12 17zM16 14v.5m-8-.5v.5M11.7 5.3 9 3l-.4 3.3"/><path d="M14.3 5.3 17 3l.4 3.3M9 17c-1.5 0-3 .5-3 2c0 1.5 1.5 2 3 2h6c1.5 0 3-.5 3-2c0-1.5-1.5-2-3-2c-1 0-2-1-3-1s-2 1-3 1Z"/><path d="M5.5 8.5C4 8.5 3 9.5 3 11s1 2.5 2.5 2.5M18.5 8.5c1.5 0 2.5 1 2.5 2.5s-1 2.5-2.5 2.5"/></g>',
+  // Generic broom (sweeping). Reuses a simple broom outline.
+  broom:
+    '<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M19.4 4.6 21 6m-1-2L8 16m-3.5 4.5 1-3 6.5-6.5 2 2L7.5 19.5z"/></g>',
   dot: '<circle cx="12" cy="12" r="2.5" fill="currentColor"/>',
 }
 
@@ -72,22 +85,28 @@ export const CHORE_ICON: Record<string, string> = {
  * First matching rule wins, so order more-specific words before generic ones.
  */
 const KEYWORD_RULES: ReadonlyArray<readonly [readonly string[], string]> = [
-  [['bed', 'sleep', 'nap', 'pillow', 'blanket'], 'bed'],
-  [['dish', 'dishwasher'], 'washing-machine'],
-  [['table', 'plate', 'cutlery', 'fork', 'spoon', 'meal', 'dinner', 'lunch', 'breakfast'], 'utensils'],
-  [['pet', 'dog', 'cat', 'fish', 'hamster', 'rabbit', 'feed', 'bird'], 'cat'],
-  [['laundry', 'clothes', 'fold', 'hamper', 'wash clothes', 'socks', 'shirt'], 'shirt'],
-  [['recycl', 'trash', 'garbage', 'bin', 'rubbish', 'compost'], 'trash-2'],
-  [['vacuum', 'sweep', 'mop', 'dust', 'wipe', 'scrub', 'clean', 'tidy', 'room'], 'brush-cleaning'],
-  [['toy', 'play', 'sparkle', 'sort', 'organi'], 'sparkles'],
-  [['plant', 'water', 'garden', 'flower', 'grow'], 'sprout'],
-  [['homework', 'read', 'book', 'school', 'backpack', 'study', 'pack'], 'backpack'],
+  [['bed', 'sleep', 'nap', 'pillow', 'blanket', 'sheets', 'duvet'], 'bed'],
+  [['dish', 'dishwasher', 'wash up', 'washing up'], 'washing-machine'],
+  [['table', 'plate', 'cutlery', 'fork', 'spoon', 'meal', 'dinner', 'lunch', 'breakfast', 'snack', 'cook', 'bake', 'kitchen'], 'utensils'],
+  [['dog', 'puppy', 'walk the'], 'dog'],
+  [['pet', 'cat', 'fish', 'hamster', 'rabbit', 'feed', 'bird', 'litter', 'cage', 'kitten'], 'cat'],
+  [['laundry', 'clothes', 'fold', 'hamper', 'socks', 'shirt', 'dress', 'wardrobe', 'closet', 'iron'], 'shirt'],
+  [['recycl', 'trash', 'garbage', 'rubbish', 'compost', 'bins', 'bin '], 'trash-2'],
+  [['vacuum', 'hoover', 'mop', 'dust', 'wipe', 'scrub', 'polish'], 'brush-cleaning'],
+  [['sweep', 'broom'], 'broom'],
+  [['clean', 'tidy', 'room', 'declutter', 'make tidy'], 'sparkles'],
+  [['toy', 'play', 'sparkle', 'sort', 'organi', 'pack away', 'put away', 'lego'], 'sparkles'],
+  [['water', 'plant', 'garden', 'flower', 'grow', 'weed', 'rake', 'leaves'], 'sprout'],
+  [['bath', 'shower', 'teeth', 'brush teeth', 'wash hands', 'wash face', 'hygiene', 'hair'], 'droplets'],
+  [['homework', 'read', 'book', 'study', 'practice', 'practise', 'piano', 'spelling', 'math'], 'book-open'],
+  [['school', 'backpack', 'bag', 'lunchbox', 'pack '], 'backpack'],
+  [['feed', 'water bowl'], 'cat'],
 ]
 
 /**
  * Resolve an icon name from a chore. Prefers the id fast-path, then matches
- * keywords in the label, and falls back to a real, neutral icon (never a bare
- * dot) so custom chores always get a meaningful glyph.
+ * keywords in the label, and falls back to a friendly neutral icon (a star,
+ * never a bare dot) so custom chores always get a sensible, warm glyph.
  */
 export function iconNameForChore(id: string, label?: string): string {
   const fast = CHORE_ICON[id]
@@ -96,7 +115,7 @@ export function iconNameForChore(id: string, label?: string): string {
   for (const [words, icon] of KEYWORD_RULES) {
     if (words.some((w) => haystack.includes(w))) return icon
   }
-  return 'clipboard-list'
+  return 'star'
 }
 
 /**

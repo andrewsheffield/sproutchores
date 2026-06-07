@@ -103,6 +103,12 @@
   --measure: 68ch;          /* readable line length cap */
   --container-max: 72rem;   /* 1152px page gutter cap   */
 
+  /* Chore-chart grid sizing — drive the chart's column widths and the table
+     min-width (below which .chart-scroll scrolls horizontally on mobile). */
+  --chart-chore-col: 11rem;  /* icon + chore label column            */
+  --chart-day-col: 2.75rem;  /* each Mon–Sun day column (box + gutter) */
+  --chart-min-width: 36rem;  /* chore + 7 days + remove at legible size */
+
   /* Focus ring — high-visibility, theme-aware. */
   --focus-ring-color: var(--color-accent);
   --focus-ring-width: 3px;

@@ -61,79 +61,88 @@ const dayColumns = initialModel.columns.slice(1)
        Per-chore icons are inlined from chore-icons.ts so SSR and the island
        markup match exactly. -->
   <div class="generator__preview" id="ccg-preview" aria-live="polite">
-    <table class="chart-table" role="table" aria-label={initialModel.title}>
-      <caption class="chart-table__title" id="ccg-chart-title">
-        <span class="chart-table__title-icon" set:html={iconSvg('calendar-check')} />
-        <span class="chart-table__title-text">{initialModel.title}</span>
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col" class="chart-table__th chart-table__th--chore">Chore</th>
-          {dayColumns.map((col) => (
-            <th scope="col" class="chart-table__th chart-table__th--day">{col}</th>
-          ))}
-          <th scope="col" class="chart-table__th chart-table__th--action">
-            <span class="sr-only">Remove</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id="ccg-chart-body">
-        {initialModel.rows.map((row) => (
-          <tr class="chart-table__row">
-            <td class="chart-table__chore">
-              <div class="chart-table__chore-cell-inner">
-                <span class="chart-table__chore-icon" set:html={choreIconSvg(row.id, row.chore)} />
-                <span class="chart-table__chore-label">{row.chore}</span>
-              </div>
-            </td>
-            {dayColumns.map((day) => (
-              <td class="chart-table__check-cell">
-                <input
-                  type="checkbox"
-                  class="chart-table__checkbox"
-                  aria-label={`${row.chore} — ${day}`}
-                />
-              </td>
+
+    <!-- Caption is a real heading ABOVE the scroll area so it gets full width
+         and never collides with / wraps into the colored header band. -->
+    <h3 class="chart-title" id="ccg-chart-title">
+      <span class="chart-title__icon" set:html={iconSvg('calendar-check')} />
+      <span class="chart-title__text">{initialModel.title}</span>
+    </h3>
+
+    <!-- Horizontal-scroll wrapper: on narrow screens the 7-day grid scrolls
+         instead of crushing; the chore column is sticky so labels stay put. -->
+    <div class="chart-scroll">
+      <table class="chart-table" role="table" aria-label={initialModel.title}>
+        <thead>
+          <tr>
+            <th scope="col" class="chart-table__th chart-table__th--chore">Chore</th>
+            {dayColumns.map((col) => (
+              <th scope="col" class="chart-table__th chart-table__th--day">{col}</th>
             ))}
-            <td class="chart-table__action-cell">
-              <button
-                class="btn chart-table__remove"
-                type="button"
-                aria-label={`Remove ${row.chore}`}
-              >
-                <span class="chart-table__remove-icon" set:html={iconSvg('trash-2')} />
-              </button>
-            </td>
+            <th scope="col" class="chart-table__th chart-table__th--action">
+              <span class="sr-only">Remove</span>
+            </th>
           </tr>
-        ))}
-      </tbody>
-      <tfoot>
-        <tr class="chart-add-row" id="ccg-add-row">
-          <td class="chart-add-row__cell" colSpan={dayColumns.length + 2}>
-            <label class="sr-only" for="ccg-new-chore">Add a chore</label>
-            <div class="chart-add-row__field">
-              <span class="chart-add-row__icon" set:html={iconSvg('plus')} />
-              <input
-                class="chart-add-row__input"
-                id="ccg-new-chore"
-                type="text"
-                placeholder="Type a chore and press Enter…"
-                maxlength="60"
-                autocomplete="off"
-                list="ccg-chore-suggestions"
-                aria-describedby="ccg-new-chore-hint"
-              />
-              <button class="btn btn--secondary chart-add-row__btn" id="ccg-add-btn" type="button">
-                Add chore
-              </button>
-            </div>
-            <span id="ccg-new-chore-hint" class="control-hint">
-              Pick a suggestion or type your own — Enter adds it to the chart.
-            </span>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+        </thead>
+        <tbody id="ccg-chart-body">
+          {initialModel.rows.map((row) => (
+            <tr class="chart-table__row">
+              <td class="chart-table__chore">
+                <div class="chart-table__chore-cell-inner">
+                  <span class="chart-table__chore-icon" set:html={choreIconSvg(row.id, row.chore)} />
+                  <span class="chart-table__chore-label">{row.chore}</span>
+                </div>
+              </td>
+              {dayColumns.map((day) => (
+                <td class="chart-table__check-cell">
+                  <input
+                    type="checkbox"
+                    class="chart-table__checkbox"
+                    aria-label={`${row.chore} — ${day}`}
+                  />
+                </td>
+              ))}
+              <td class="chart-table__action-cell">
+                <button
+                  class="btn chart-table__remove"
+                  type="button"
+                  aria-label={`Remove ${row.chore}`}
+                >
+                  <span class="chart-table__remove-icon" set:html={iconSvg('trash-2')} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add-a-chore row lives OUTSIDE the scroll area so it's always full-width
+         and never squished. The leading + reads as an icon inside one cohesive
+         field; the real action is the "Add chore" button. -->
+    <div class="chart-add" id="ccg-add-row">
+      <label class="sr-only" for="ccg-new-chore">Add a chore</label>
+      <div class="chart-add__field">
+        <span class="chart-add__icon" set:html={iconSvg('plus')} />
+        <input
+          class="chart-add__input"
+          id="ccg-new-chore"
+          type="text"
+          placeholder="Type a chore and press Enter…"
+          maxlength="60"
+          autocomplete="off"
+          list="ccg-chore-suggestions"
+          aria-describedby="ccg-new-chore-hint"
+        />
+        <button class="btn btn--secondary chart-add__btn" id="ccg-add-btn" type="button">
+          Add chore
+        </button>
+      </div>
+      <span id="ccg-new-chore-hint" class="control-hint">
+        Pick a suggestion or type your own — Enter adds it to the chart.
+      </span>
+    </div>
+
     <datalist id="ccg-chore-suggestions">
       {initialSuggestions.map((s) => <option value={s}></option>)}
     </datalist>
@@ -200,7 +209,6 @@ const dayColumns = initialModel.columns.slice(1)
   const printBtn    = document.getElementById('ccg-print-btn')!
   const liveRegion  = document.getElementById('ccg-live')!
   const suggestions = document.getElementById('ccg-chore-suggestions')!
-  const addInputRow = document.getElementById('ccg-add-row')!
 
   // ---- State ---------------------------------------------------------------
   // `customChores` starts as null (= use band defaults). Once the user edits
@@ -334,10 +342,6 @@ const dayColumns = initialModel.columns.slice(1)
       })
     }
 
-    // Keep the add-row colspan in sync (day count is constant, but defensive).
-    const addCell = addInputRow.querySelector('td')
-    if (addCell) addCell.colSpan = dayColumns.length + 2
-
     // Keep suggestions in sync: only offer chores not already on the chart.
     refreshSuggestions()
 
@@ -348,7 +352,7 @@ const dayColumns = initialModel.columns.slice(1)
   // Updates the caption text + the table's aria-label without touching rows,
   // preserving ticked checkboxes and the caption icon.
   function updateTitle(title = currentTitle()) {
-    const titleText = document.querySelector('#ccg-chart-title .chart-table__title-text')
+    const titleText = document.querySelector('#ccg-chart-title .chart-title__text')
     const table = preview.querySelector('table')
     if (titleText) titleText.textContent = title
     if (table) table.setAttribute('aria-label', title)
@@ -461,10 +465,10 @@ const dayColumns = initialModel.columns.slice(1)
   }
   /* set:html wrappers shouldn't add baseline wobble. */
   .btn__icon,
-  .chart-table__title-icon,
+  .chart-title__icon,
   .chart-table__chore-icon,
   .chart-table__remove-icon,
-  .chart-add-row__icon {
+  .chart-add__icon {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
@@ -550,17 +554,45 @@ const dayColumns = initialModel.columns.slice(1)
     font-weight: var(--weight-medium);
   }
 
-  /* ---- Preview table ---------------------------------------------------- */
+  /* ---- Preview area ----------------------------------------------------- */
 
   .generator__preview {
-    overflow-x: auto;
     border-radius: var(--radius-lg);
     background-color: var(--color-bg);
     padding: var(--space-5);
     border: var(--border-width) solid var(--color-border);
     box-shadow: var(--shadow-sm);
+    display: grid;
+    gap: var(--space-4);
     /* Reserve vertical space so the initial chart render doesn't shift layout. */
     min-height: var(--space-9);
+  }
+
+  /* Caption as a real heading — full width, its own line, above the band. */
+  .chart-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-0);
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+    line-height: var(--leading-snug);
+    text-wrap: balance;
+  }
+
+  .chart-title__icon {
+    color: var(--color-primary);
+    --icon-size: var(--space-6);
+  }
+
+  /* Horizontal-scroll wrapper — the grid scrolls on mobile instead of crushing. */
+  .chart-scroll {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    /* Smooth, contained momentum scroll on touch. */
+    -webkit-overflow-scrolling: touch;
   }
 
   .chart-table {
@@ -568,28 +600,9 @@ const dayColumns = initialModel.columns.slice(1)
     border-collapse: separate;
     border-spacing: 0;
     font-size: var(--text-sm);
-    table-layout: fixed;
-    /* Keep day columns tidy on desktop without crushing on mobile. */
-    min-width: var(--space-9);
-  }
-
-  .chart-table__title {
-    font-family: var(--font-display);
-    font-size: var(--text-xl);
-    font-weight: var(--weight-bold);
-    color: var(--color-text);
-    text-align: left;
-    padding-bottom: var(--space-4);
-    caption-side: top;
-    line-height: var(--leading-snug);
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .chart-table__title-icon {
-    color: var(--color-primary);
-    --icon-size: var(--space-6);
+    /* Enough room for the icon+label column, 7 legible day boxes, and remove.
+       Below this width the .chart-scroll wrapper scrolls horizontally. */
+    min-width: var(--chart-min-width);
   }
 
   /* Colored header band — a solid brand strip (modern: crisp, not uppercased). */
@@ -614,21 +627,33 @@ const dayColumns = initialModel.columns.slice(1)
     border-bottom-right-radius: var(--radius-md);
   }
 
+  /* Chore (first) column: sticky so labels stay visible while days scroll. */
+  .chart-table__th--chore,
+  .chart-table__chore {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
   .chart-table__th--chore {
     text-align: left;
     padding-left: var(--space-4);
-    width: 34%;
+    width: var(--chart-chore-col);
+    min-width: var(--chart-chore-col);
   }
 
-  /* Day columns share the remaining width evenly so Mon–Sun line up tidily. */
-  .chart-table__th--day {
-    width: auto;
+  /* Fixed, comfortable day-column width so Mon–Sun stay even and legible. */
+  .chart-table__th--day,
+  .chart-table__check-cell {
+    width: var(--chart-day-col);
+    min-width: var(--chart-day-col);
   }
 
   /* Trailing remove-action column — narrow, fixed. */
   .chart-table__th--action,
   .chart-table__action-cell {
-    width: var(--space-7);
+    width: var(--space-8);
+    min-width: var(--space-8);
     text-align: center;
   }
 
@@ -641,17 +666,19 @@ const dayColumns = initialModel.columns.slice(1)
 
   .chart-table__chore {
     padding: var(--space-2) var(--space-4);
+    /* Sticky column needs an opaque background so scrolling days pass behind. */
+    background-color: var(--color-bg);
     color: var(--color-text);
     font-weight: var(--weight-medium);
     line-height: var(--leading-snug);
   }
 
   /* Icon + label as a flex pair so they're vertically centred with a clear,
-     consistent gap (icon shouldn't crowd the label). */
+     consistent gap (icon must not crowd the label). */
   .chart-table__chore-cell-inner {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-4);
   }
 
   .chart-table__chore-icon {
@@ -664,40 +691,38 @@ const dayColumns = initialModel.columns.slice(1)
   }
 
   .chart-table__check-cell {
-    padding: var(--space-2);
+    padding: var(--space-3) var(--space-2);
     /* Centre each box within its day column for even Mon–Sun rhythm. */
     text-align: center;
     vertical-align: middle;
   }
 
-  /* Custom day tick-box — a crisp, INTENTIONAL square (never a native circle):
-     appearance:none with a small radius (--radius-sm, kept well below half the
-     box size), a high-contrast outline (--color-checkbox-border at
-     --border-checkbox), surface fill, and a clear filled + white-check :checked
-     state. Real keyboard-operable <input type="checkbox"> (styled, never
-     replaced). Centred in its cell. */
+  /* Custom day tick-box — matches the article checklist square (accent-soft
+     fill, visible border, small radius), but is a REAL keyboard-operable
+     <input type="checkbox"> styled via appearance:none. inline-grid keeps it an
+     inline box so the cell's text-align:center centres it under the day header.
+     Sized like the article box (--space-5). */
   .chart-table__checkbox {
     appearance: none;
     -webkit-appearance: none;
     box-sizing: border-box;
+    display: inline-grid;
+    place-content: center;
+    vertical-align: middle;
     width: var(--space-5);
     height: var(--space-5);
-    margin-inline: auto;
-    margin-block: var(--space-0);
+    margin: var(--space-0);
     border: var(--border-checkbox) solid var(--color-checkbox-border);
     border-radius: var(--radius-sm);
-    background-color: var(--color-surface);
+    background-color: var(--color-accent-soft);
     cursor: pointer;
-    display: grid;
-    place-content: center;
     transition:
       background-color var(--duration-fast) var(--ease-out),
       border-color var(--duration-fast) var(--ease-out),
       box-shadow var(--duration-fast) var(--ease-out);
   }
 
-  /* Check glyph drawn as a CSS tick (no asset); revealed on :checked. Sized to
-     read clearly inside the ~1.5rem box. */
+  /* Check glyph drawn as a CSS tick (no asset); revealed on :checked. */
   .chart-table__checkbox::before {
     content: '';
     width: var(--space-2);
@@ -782,13 +807,16 @@ const dayColumns = initialModel.columns.slice(1)
     border-color: var(--color-danger);
   }
 
-  /* ---- Add-a-chore row (table footer) ----------------------------------- */
+  /* ---- Add-a-chore field (full-width, below the scroll area) ------------ */
 
-  .chart-add-row__cell {
-    padding: var(--space-4) var(--space-2) var(--space-2);
+  .chart-add {
+    display: grid;
+    gap: var(--space-1);
   }
 
-  .chart-add-row__field {
+  /* One cohesive field: the leading + is an icon INSIDE the field (muted, part
+     of the input), the "Add chore" button is the real action. */
+  .chart-add__field {
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -801,19 +829,20 @@ const dayColumns = initialModel.columns.slice(1)
       box-shadow var(--duration-fast) var(--ease-out);
   }
 
-  .chart-add-row__field:focus-within {
+  .chart-add__field:focus-within {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
   }
 
-  .chart-add-row__icon {
+  /* Muted leading icon — reads as part of the field, not a button. */
+  .chart-add__icon {
     --icon-size: var(--space-5);
-    color: var(--color-primary);
+    color: var(--color-muted);
   }
 
-  .chart-add-row__input {
+  .chart-add__input {
     flex: 1;
-    min-width: var(--space-9);
+    min-width: var(--space-8);
     border: none;
     background: transparent;
     padding: var(--space-2) var(--space-0);
@@ -822,15 +851,15 @@ const dayColumns = initialModel.columns.slice(1)
     color: var(--color-text);
   }
 
-  .chart-add-row__input::placeholder {
+  .chart-add__input::placeholder {
     color: var(--color-muted);
   }
 
-  .chart-add-row__input:focus-visible {
+  .chart-add__input:focus-visible {
     outline: none;
   }
 
-  .chart-add-row__btn {
+  .chart-add__btn {
     flex-shrink: 0;
   }
 

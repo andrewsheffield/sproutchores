@@ -29,11 +29,11 @@
   }
 
   /* Editing affordances live inside the chart now — hide them on paper:
-     the per-row remove column and the add-a-chore footer row. */
+     the per-row remove column and the add-a-chore field. */
   .chart-table__th--action,
   .chart-table__action-cell,
   .chart-table__remove,
-  .chart-add-row {
+  .chart-add {
     display: none !important;
   }
 
@@ -102,21 +102,26 @@
 
   /* ── Chart table ──────────────────────────────────────────────────────── */
 
+  /* The scroll wrapper must not clip or scroll on paper. */
+  .chart-scroll {
+    overflow: visible !important;
+  }
+
   .chart-table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
+    min-width: 0 !important; /* drop the screen min-width so it fits the page */
     font-size: 10pt;
     page-break-inside: avoid;
   }
 
-  /* Title / caption */
-  .chart-table__title {
+  /* Title — now a real heading above the table. */
+  .chart-title {
     font-size: 18pt;
     font-weight: bold;
     text-align: left;
     padding-bottom: 0.4cm;
-    caption-side: top;
     color: #000;
     font-family: Georgia, "Times New Roman", serif;
   }
@@ -135,6 +140,20 @@
   .chart-table__th--chore {
     text-align: left;
     width: 38%;
+  }
+
+  /* The sticky chore column must NOT be sticky / coloured on paper. */
+  .chart-table__th--chore,
+  .chart-table__chore {
+    position: static !important;
+    background: transparent !important;
+  }
+
+  /* Day columns reset to auto width so all 7 fit the landscape page. */
+  .chart-table__th--day,
+  .chart-table__check-cell {
+    width: auto !important;
+    min-width: 0 !important;
   }
 
   /* Row striping — monochrome-friendly light grey */
