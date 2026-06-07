@@ -64,10 +64,10 @@ const dayColumns = initialModel.columns.slice(1)
 
     <!-- Caption is a real heading ABOVE the scroll area so it gets full width
          and never collides with / wraps into the colored header band. -->
-    <h3 class="chart-title" id="ccg-chart-title">
+    <div class="chart-title" id="ccg-chart-title">
       <span class="chart-title__icon" set:html={iconSvg('calendar-check')} />
       <span class="chart-title__text">{initialModel.title}</span>
-    </h3>
+    </div>
 
     <!-- Horizontal-scroll wrapper: on narrow screens the 7-day grid scrolls
          instead of crushing; the chore column is sticky so labels stay put. -->
@@ -450,7 +450,7 @@ const dayColumns = initialModel.columns.slice(1)
   /* GLOBAL (not scoped): the island rebuilds the chart rows/checkboxes/chips in
      JS via createElement, and Astro's scoped data-astro-cid attribute is only on
      build-time template elements — scoped rules never reach the hydrated DOM.
-     These class names are namespaced (chart-*/chore-item/generator-*) so global
+     These class names are namespaced (chart-, chore-item, generator-) so global
      scope is safe and is the only thing that styles the dynamic elements. */
   /* =========================================================================
      Generator island — tokens only; NO hardcoded hex/rgb/px.
