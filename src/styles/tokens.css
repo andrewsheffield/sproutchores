@@ -39,6 +39,9 @@
   --color-accent: #f0883e;        /* sunny apricot — highlights, celebration */
   --color-accent-soft: #fdecd9;   /* tint wash for accent surfaces */
   --color-border: #e4ddcf;        /* warm hairline */
+  --color-primary-soft: #e6f0ea;  /* faint sprout-green tint for header rows */
+  --color-danger: #b4452f;        /* muted terracotta for destructive hover */
+  --color-danger-soft: #f7e3dd;   /* terracotta tint wash */
 
   /* Typography — system stack: zero network cost, no render-blocking, CWV-safe.
      A rounded-friendly sans for body/UI; the same stack with tighter tracking
@@ -87,6 +90,7 @@
 
   /* Borders — one consistent hairline width across components. */
   --border-width: 0.0625rem; /* 1px */
+  --border-checkmark: 0.1875rem; /* 3px — stroke for the CSS tick glyph */
 
   /* Elevation — one soft, warm-tinted shadow (avoids cold gray drop shadows). */
   --shadow-sm: 0 1px 2px rgba(36, 48, 39, 0.06);
