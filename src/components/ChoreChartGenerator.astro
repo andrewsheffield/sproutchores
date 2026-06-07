@@ -39,7 +39,7 @@
   </div>
 
   <!-- Live chart preview -------------------------------------------------- -->
-  <div class="generator__preview" id="ccg-preview" aria-live="polite" aria-atomic="true">
+  <div class="generator__preview" id="ccg-preview" aria-live="polite">
     <!-- Rendered by the island script on first paint and on every change. -->
   </div>
 
@@ -89,12 +89,23 @@
     send: gaSend(import.meta.env.PUBLIC_GA4_ID),
     getVariant,
   })
+  // GENERATOR_START and GENERATOR_COMPLETE are one-shot funnel events. START
+  // fires on the first real interaction; COMPLETE fires once, only after START,
+  // when a valid (non-empty) chart is shown — never from the initial load.
   let startFired = false
+  let completeFired = false
 
   function trackStart() {
     if (!startFired) {
       startFired = true
       metrics.track(EVENTS.GENERATOR_START)
+    }
+  }
+
+  function maybeTrackComplete(choreCount: number) {
+    if (startFired && !completeFired && choreCount > 0) {
+      completeFired = true
+      metrics.track(EVENTS.GENERATOR_COMPLETE, { age: currentAge })
     }
   }
 
@@ -109,10 +120,14 @@
 
   // ---- State ---------------------------------------------------------------
   // `customChores` starts as null (= use band defaults). Once the user edits
-  // the list it becomes the overridden set so changes survive age changes.
+  // the list it becomes the overridden set so changes survive name edits
+  // (an age change resets it back to the new band's defaults).
   type ChoreItem = { id: string; label: string }
+  const AGE_MIN = 4
+  const AGE_MAX = 9
   let currentAge   = 6
   let customChores: ChoreItem[] | null = null
+  let customChoreSeq = 0 // monotonic counter for collision-free custom ids
 
   // ---- Core helpers --------------------------------------------------------
   function getEffectiveChores(): ChoreItem[] {
@@ -125,23 +140,33 @@
     return chartForAge(currentAge).ageBand
   }
 
-  // ---- Render chart preview ------------------------------------------------
-  function renderPreview() {
+  function currentTitle(): string {
+    const childName = nameInput.value.trim() || undefined
+    return buildPrintableChartModel({
+      ageBand: getEffectiveAgeBand(),
+      chores: getEffectiveChores(),
+      childName,
+    }).title
+  }
+
+  // ---- Render: full table rebuild (age / chore-set changes only) -----------
+  function renderTable() {
     const chores  = getEffectiveChores()
     const ageBand = getEffectiveAgeBand()
     const childName = nameInput.value.trim() || undefined
 
     const model = buildPrintableChartModel({ ageBand, chores, childName })
 
-    // Build the preview table
     const table = document.createElement('table')
     table.className = 'chart-table'
     table.setAttribute('role', 'table')
     table.setAttribute('aria-label', model.title)
 
-    // Caption (also acts as the visible title for print)
+    // Caption (also the visible title for print). Tagged so a name-only change
+    // can update just this node without rebuilding the table.
     const caption = document.createElement('caption')
     caption.className = 'chart-table__title'
+    caption.id = 'ccg-chart-title'
     caption.textContent = model.title
     table.appendChild(caption)
 
@@ -150,7 +175,7 @@
     const headerRow = document.createElement('tr')
     model.columns.forEach((col) => {
       const th = document.createElement('th')
-      th.scope = col === 'Chore' ? 'col' : 'col'
+      th.scope = 'col'
       th.className = col === 'Chore' ? 'chart-table__th chart-table__th--chore' : 'chart-table__th chart-table__th--day'
       th.textContent = col
       headerRow.appendChild(th)
@@ -198,9 +223,22 @@
     preview.innerHTML = ''
     preview.appendChild(table)
 
-    // Fire generator_complete whenever a valid chart is shown
-    if (chores.length > 0) {
-      metrics.track(EVENTS.GENERATOR_COMPLETE, { age: currentAge })
+    maybeTrackComplete(chores.length)
+  }
+
+  // ---- Render: title-only update (name changes) ----------------------------
+  // Updates the caption text + the table's aria-label in place, preserving
+  // ticked checkboxes and avoiding table churn. Falls back to a full rebuild
+  // only if the table hasn't been rendered yet.
+  function updateTitle() {
+    const title = currentTitle()
+    const caption = document.getElementById('ccg-chart-title')
+    const table = preview.querySelector('table')
+    if (caption && table) {
+      caption.textContent = title
+      table.setAttribute('aria-label', title)
+    } else {
+      renderTable()
     }
   }
 
@@ -228,8 +266,7 @@
           customChores = getEffectiveChores().slice()
         }
         customChores = customChores.filter((c) => c.id !== chore.id)
-        renderChoreList()
-        renderPreview()
+        renderChoreSet()
       })
 
       li.appendChild(label)
@@ -238,10 +275,11 @@
     })
   }
 
-  // ---- Full refresh (chore list + preview) --------------------------------
-  function refresh() {
+  // ---- Refresh helpers -----------------------------------------------------
+  // Chore-set or age change: rebuild both the editor list and the table.
+  function renderChoreSet() {
     renderChoreList()
-    renderPreview()
+    renderTable()
   }
 
   // ---- Event: age change ---------------------------------------------------
@@ -249,16 +287,20 @@
     trackStart()
     const parsed = parseInt(ageInput.value, 10)
     if (!Number.isFinite(parsed)) return
-    currentAge = parsed
+    // Clamp to the supported range and reflect the clamped value back into the
+    // input so the title's band and the input value never disagree.
+    const clamped = Math.min(AGE_MAX, Math.max(AGE_MIN, parsed))
+    if (String(clamped) !== ageInput.value) ageInput.value = String(clamped)
+    currentAge = clamped
     // Reset custom chores on age change so defaults for the new band apply.
     customChores = null
-    refresh()
+    renderChoreSet()
   })
 
-  // ---- Event: name change --------------------------------------------------
+  // ---- Event: name change (title only — no table rebuild) ------------------
   nameInput.addEventListener('input', () => {
     trackStart()
-    renderPreview()
+    updateTitle()
   })
 
   // ---- Event: add chore ----------------------------------------------------
@@ -269,10 +311,10 @@
     if (customChores === null) {
       customChores = getEffectiveChores().slice()
     }
-    const id = `custom-${Date.now()}`
+    const id = `custom-${++customChoreSeq}`
     customChores = [...customChores, { id, label }]
     newChoreIn.value = ''
-    refresh()
+    renderChoreSet()
   }
 
   addBtn.addEventListener('click', addChore)
@@ -290,7 +332,11 @@
   })
 
   // ---- Initial render ------------------------------------------------------
-  refresh()
+  // Renders the default chart WITHOUT firing GENERATOR_COMPLETE (no interaction
+  // yet): maybeTrackComplete() is guarded by startFired, which is still false.
+  renderChoreList()
+  renderTable()
+
 </script>
 
 <style>
@@ -342,7 +388,7 @@
     font-size: var(--text-base);
     color: var(--color-text);
     background-color: var(--color-surface);
-    border: 0.09375rem solid var(--color-border);
+    border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-sm);
     transition: border-color var(--duration-fast) var(--ease-out);
   }
@@ -364,6 +410,8 @@
     border-radius: var(--radius-md);
     background-color: var(--color-surface-sunken);
     padding: var(--space-4);
+    /* Reserve vertical space so the initial chart render doesn't shift layout. */
+    min-height: var(--space-9);
   }
 
   .chart-table {
@@ -388,7 +436,7 @@
     text-align: center;
     font-weight: var(--weight-medium);
     color: var(--color-muted);
-    border-bottom: 0.09375rem solid var(--color-border);
+    border-bottom: var(--border-width) solid var(--color-border);
     white-space: nowrap;
   }
 
@@ -460,7 +508,7 @@
     background-color: var(--color-surface-sunken);
     border-radius: var(--radius-sm);
     padding: var(--space-2) var(--space-3);
-    border: 0.0625rem solid var(--color-border);
+    border: var(--border-width) solid var(--color-border);
   }
 
   .chore-item__label {
@@ -501,7 +549,7 @@
       border-color var(--duration-fast) var(--ease-out);
     white-space: nowrap;
     text-decoration: none;
-    border: 0.09375rem solid transparent;
+    border: var(--border-width) solid transparent;
     padding: var(--space-2) var(--space-4);
     font-size: var(--text-base);
     line-height: var(--leading-snug);

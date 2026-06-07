@@ -85,6 +85,9 @@
   --radius-lg: 1.25rem;   /* 20px */
   --radius-pill: 999px;
 
+  /* Borders — one consistent hairline width across components. */
+  --border-width: 0.0625rem; /* 1px */
+
   /* Elevation — one soft, warm-tinted shadow (avoids cold gray drop shadows). */
   --shadow-sm: 0 1px 2px rgba(36, 48, 39, 0.06);
   --shadow-md: 0 10px 30px -12px rgba(36, 48, 39, 0.18);
