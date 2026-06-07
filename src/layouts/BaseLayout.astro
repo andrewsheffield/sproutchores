@@ -1,0 +1,217 @@
+---
+import '../styles/tokens.css'
+import { getVariant } from '../lib/variant-config'
+
+export interface Props {
+  title: string
+  description: string
+  canonical?: string
+  /** Arbitrary JSON-LD object rendered into a <script type="application/ld+json">. */
+  jsonLd?: Record<string, unknown>
+}
+
+const { title, description, canonical, jsonLd } = Astro.props
+
+// The active variant drives BOTH the theme token-set (data-theme) and the
+// metrics tag (data-variant). One source of truth: getVariant().
+const variant = getVariant()
+const theme = variant // control theme maps 1:1 to the control variant for now
+
+// Canonical: prefer the explicit prop, else derive from the configured site.
+const canonicalUrl =
+  canonical ?? (Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.href)
+
+// GA4 is inert unless a measurement ID is configured at build time.
+const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
+---
+
+<!doctype html>
+<html lang="en" data-theme={theme} data-variant={variant}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    {/* Open Graph */}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="SproutChores" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    {/* JSON-LD structured data, only when supplied. set:html stringifies safely. */}
+    {jsonLd && (
+      <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    )}
+
+    {/* GA4 (gtag) — emitted ONLY when PUBLIC_GA4_ID is set. Absent => no script. */}
+    {ga4Id && (
+      <script
+        is:inline
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}
+      />
+    )}
+    {ga4Id && (
+      <script is:inline define:vars={{ ga4Id }}>
+        {`window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        window.gtag = gtag;
+        gtag('js', new Date());
+        gtag('config', ga4Id);`}
+      </script>
+    )}
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot name="header" />
+    <main id="main">
+      <slot />
+    </main>
+    <slot name="footer" />
+
+    {/* web-vitals: report LCP / INP / CLS via the variant-tagged metrics client.
+        Bundled (not is:inline) so the import is resolved & tree-shaken by Vite. */}
+    <script>
+      import { onLCP, onINP, onCLS, type Metric } from 'web-vitals'
+      import { createMetrics } from '../lib/metrics'
+      import { gaSend } from '../lib/metrics'
+      import { getVariant } from '../lib/variant-config'
+
+      const metrics = createMetrics({
+        send: gaSend(import.meta.env.PUBLIC_GA4_ID),
+        getVariant,
+      })
+
+      const report = (name: string) => (m: Metric) =>
+        metrics.track('web_vital', {
+          metric: name,
+          value: Math.round(m.value * (name === 'CLS' ? 1000 : 1)) / (name === 'CLS' ? 1000 : 1),
+          rating: m.rating,
+          id: m.id,
+        })
+
+      onLCP(report('LCP'))
+      onINP(report('INP'))
+      onCLS(report('CLS'))
+    </script>
+
+    <style>
+      /* ---- Typographic baseline & reset — TOKENS ONLY ---- */
+      :global(*),
+      :global(*::before),
+      :global(*::after) {
+        box-sizing: border-box;
+      }
+
+      :global(html) {
+        font-family: var(--font-sans);
+        font-size: 100%;
+        line-height: var(--leading-normal);
+        color: var(--color-text);
+        background-color: var(--color-bg);
+        -webkit-text-size-adjust: 100%;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      :global(body) {
+        margin: var(--space-0);
+        min-height: 100vh;
+        font-size: var(--text-base);
+      }
+
+      :global(main) {
+        display: block;
+      }
+
+      /* Headings — logical scale, display face, tight leading. */
+      :global(h1),
+      :global(h2),
+      :global(h3),
+      :global(h4) {
+        font-family: var(--font-display);
+        line-height: var(--leading-tight);
+        font-weight: var(--weight-bold);
+        color: var(--color-text);
+        margin-block: var(--space-0) var(--space-4);
+        text-wrap: balance;
+      }
+      :global(h1) { font-size: var(--text-4xl); letter-spacing: -0.02em; }
+      :global(h2) { font-size: var(--text-2xl); letter-spacing: -0.01em; }
+      :global(h3) { font-size: var(--text-xl); }
+      :global(h4) { font-size: var(--text-lg); }
+
+      :global(p),
+      :global(ul),
+      :global(ol) {
+        margin-block: var(--space-0) var(--space-4);
+        max-width: var(--measure);
+      }
+
+      :global(a) {
+        color: var(--color-primary);
+        text-decoration-color: var(--color-border);
+        text-underline-offset: var(--space-1);
+        transition: color var(--duration-fast) var(--ease-out);
+      }
+      :global(a:hover) {
+        color: var(--color-primary-hover);
+        text-decoration-color: currentColor;
+      }
+
+      :global(strong) { font-weight: var(--weight-bold); }
+      :global(small) { font-size: var(--text-sm); color: var(--color-muted); }
+
+      /* Visible, token-driven focus ring on every interactive element. */
+      :global(a:focus-visible),
+      :global(button:focus-visible),
+      :global(input:focus-visible),
+      :global(select:focus-visible),
+      :global(textarea:focus-visible),
+      :global([tabindex]:focus-visible) {
+        outline: var(--focus-ring-width) solid var(--focus-ring-color);
+        outline-offset: var(--focus-ring-offset);
+        border-radius: var(--radius-sm);
+      }
+
+      /* Accessible skip link — hidden until focused. */
+      .skip-link {
+        position: absolute;
+        left: var(--space-3);
+        top: calc(var(--space-3) * -10);
+        z-index: 100;
+        padding: var(--space-2) var(--space-4);
+        background: var(--color-surface);
+        color: var(--color-primary);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        font-weight: var(--weight-medium);
+        transition: top var(--duration-base) var(--ease-out);
+      }
+      .skip-link:focus {
+        top: var(--space-3);
+      }
+
+      /* Respect reduced-motion preferences. */
+      @media (prefers-reduced-motion: reduce) {
+        :global(*),
+        :global(*::before),
+        :global(*::after) {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </body>
+</html>
