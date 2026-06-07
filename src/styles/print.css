@@ -1,0 +1,177 @@
+/* ============================================================================
+   SproutChores — Print Stylesheet
+   ----------------------------------------------------------------------------
+   Purpose: when the user clicks "Print / Save as PDF", hide all site chrome
+   and render ONLY the chart (title + chore rows + day columns) cleanly on
+   a single page.
+
+   Raw unit values (cm, pt, mm) are intentionally used here because print
+   layout requires physical-media units, not design tokens (which are
+   screen-relative). This file is the ONE allowed exception to the
+   tokens-only rule — tokens cannot express paper sizes or print margins.
+============================================================================ */
+
+@media print {
+  /* ── Hide all chrome ─────────────────────────────────────────────────── */
+
+  /* Site header, nav, footer, skip link */
+  header,
+  nav,
+  footer,
+  .skip-link {
+    display: none !important;
+  }
+
+  /* Generator controls (age input, name input, add-chore row) */
+  .generator__controls,
+  .generator__chore-editor,
+  .generator__actions {
+    display: none !important;
+  }
+
+  /* Page header text above the generator, and all editorial content sections */
+  .page-header,
+  .content-section {
+    display: none !important;
+  }
+
+  /* Buttons everywhere */
+  button,
+  input[type="button"],
+  input[type="submit"] {
+    display: none !important;
+  }
+
+  /* ── Paper canvas ─────────────────────────────────────────────────────── */
+
+  @page {
+    size: A4 landscape;
+    margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+  }
+
+  /* ── Reduce wrapper padding so chart fills the page ─────────────────── */
+
+  .page-wrapper {
+    padding: 0;
+    margin: 0;
+    max-width: none;
+    display: block;
+  }
+
+  .generator-wrap {
+    display: block;
+  }
+
+  .generator {
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    display: block;
+  }
+
+  /* ── Chart preview: shown and sized to fill the print area ───────────── */
+
+  .generator__preview {
+    display: block !important;
+    overflow: visible;
+    background: #fff;
+    padding: 0;
+    min-height: 0;
+    border-radius: 0;
+  }
+
+  /* ── Chart table ──────────────────────────────────────────────────────── */
+
+  .chart-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+
+  /* Title / caption */
+  .chart-table__title {
+    font-size: 18pt;
+    font-weight: bold;
+    text-align: left;
+    padding-bottom: 0.4cm;
+    caption-side: top;
+    color: #000;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  /* Column headers */
+  .chart-table__th {
+    padding: 0.2cm 0.3cm;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1.5pt solid #000;
+    white-space: nowrap;
+    font-size: 9pt;
+    color: #000;
+  }
+
+  .chart-table__th--chore {
+    text-align: left;
+    width: 38%;
+  }
+
+  /* Row striping — monochrome-friendly light grey */
+  .chart-table__row:nth-child(even) {
+    background-color: #f4f4f4;
+  }
+
+  .chart-table__row {
+    page-break-inside: avoid;
+  }
+
+  /* Chore name cell */
+  .chart-table__chore {
+    padding: 0.25cm 0.3cm;
+    font-weight: 500;
+    color: #000;
+    vertical-align: middle;
+    border-bottom: 0.5pt solid #ccc;
+  }
+
+  /* Day checkbox cells — render as open square boxes for ticking by hand */
+  .chart-table__check-cell {
+    padding: 0.2cm;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 0.5pt solid #ccc;
+  }
+
+  /* Hide the HTML checkboxes; replace each cell with a printable empty box */
+  .chart-table__checkbox {
+    display: none;
+  }
+
+  .chart-table__check-cell::after {
+    content: '';
+    display: inline-block;
+    width: 0.5cm;
+    height: 0.5cm;
+    border: 1pt solid #333;
+    border-radius: 2pt;
+    vertical-align: middle;
+  }
+
+  /* Empty state — hide on print (no content to tick) */
+  .chart-table__empty {
+    display: none;
+  }
+}
