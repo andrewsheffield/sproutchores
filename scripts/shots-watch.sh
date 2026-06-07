@@ -46,15 +46,23 @@ cap () { # name url width height
     --window-size="${3},${4}" --screenshot="${OUT}/${1}.png" "${2}" >/dev/null 2>&1 || true
 }
 
+# 2x-DPI close-up — renders the page narrower so the generator fills the frame
+# and small controls (checkboxes, remove buttons) are big + crisp enough to judge.
+cap2 () { # name url width height
+  "$CHROME" --headless=new --force-device-scale-factor=2 --disable-gpu --hide-scrollbars \
+    --window-size="${3},${4}" --screenshot="${OUT}/${1}.png" "${2}" >/dev/null 2>&1 || true
+}
+
 while true; do
   if [ -f "$REQ" ]; then
     tok="$(cat "$REQ" 2>/dev/null || echo '?')"
     rm -f "$REQ"
     echo "→ request ${tok}: rebuild + capture…"
     npm run build >/tmp/shots-build.log 2>&1 || true
-    cap page-desktop "${URL}/chores-for-a-6-year-old/" 1280 2400
-    cap page-mobile  "${URL}/chores-for-a-6-year-old/" 390 2600
-    cap home-desktop "${URL}/" 1280 1500
+    cap  page-desktop "${URL}/chores-for-a-6-year-old/" 1280 2400
+    cap  page-mobile  "${URL}/chores-for-a-6-year-old/" 390 2600
+    cap  home-desktop "${URL}/" 1280 1500
+    cap2 page-zoom    "${URL}/chores-for-a-6-year-old/" 820 1500
     printf '%s' "$tok" > "$DONE"
     echo "  ✓ request ${tok} done — PNGs in ${OUT}/"
   fi
