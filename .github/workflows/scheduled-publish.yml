@@ -1,0 +1,60 @@
+name: Scheduled Publish
+
+on:
+  # Daily rebuild at 13:00 UTC — runs on GitHub's infrastructure (off-machine).
+  # Any page whose publishDate has become <= now will be included in this build
+  # and go live without human intervention. The isPublished gate in the source
+  # handles the filtering; no workflow logic needed here.
+  schedule:
+    - cron: '0 13 * * *'
+  # Allow a manual trigger for testing or emergency publishes.
+  workflow_dispatch:
+
+# Least-privilege: Pages deploy only; no broad write access needed.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy may run at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Rebuild + publish newly-due content
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: seo-test/site/package-lock.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        working-directory: seo-test/site
+        run: npm ci
+
+      - name: Build site
+        working-directory: seo-test/site
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: seo-test/site/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
