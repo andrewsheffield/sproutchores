@@ -1,0 +1,13 @@
+{
+  "name": "sproutchores-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": { "astro": "^6", "web-vitals": "^5" },
+  "devDependencies": { "vitest": "^3" }
+}
