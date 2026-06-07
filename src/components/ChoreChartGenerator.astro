@@ -446,7 +446,12 @@ const dayColumns = initialModel.columns.slice(1)
 
 </script>
 
-<style>
+<style is:global>
+  /* GLOBAL (not scoped): the island rebuilds the chart rows/checkboxes/chips in
+     JS via createElement, and Astro's scoped data-astro-cid attribute is only on
+     build-time template elements — scoped rules never reach the hydrated DOM.
+     These class names are namespaced (chart-*/chore-item/generator-*) so global
+     scope is safe and is the only thing that styles the dynamic elements. */
   /* =========================================================================
      Generator island — tokens only; NO hardcoded hex/rgb/px.
 
