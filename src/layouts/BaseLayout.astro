@@ -2,15 +2,24 @@
 import '../styles/tokens.css'
 import { getVariant } from '../lib/variant-config'
 
+/** Minimal valid JSON-LD: must carry @context and @type. */
+export interface JsonLd {
+  '@context': string | object
+  '@type': string
+  [key: string]: unknown
+}
+
 export interface Props {
   title: string
   description: string
   canonical?: string
-  /** Arbitrary JSON-LD object rendered into a <script type="application/ld+json">. */
-  jsonLd?: Record<string, unknown>
+  /** Path or URL to the social-share image. */
+  ogImage?: string
+  /** Structured data rendered into a <script type="application/ld+json">. */
+  jsonLd?: JsonLd
 }
 
-const { title, description, canonical, jsonLd } = Astro.props
+const { title, description, canonical, ogImage = '/og-default.png', jsonLd } = Astro.props
 
 // The active variant drives BOTH the theme token-set (data-theme) and the
 // metrics tag (data-variant). One source of truth: getVariant().
@@ -20,6 +29,19 @@ const theme = variant // control theme maps 1:1 to the control variant for now
 // Canonical: prefer the explicit prop, else derive from the configured site.
 const canonicalUrl =
   canonical ?? (Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.href)
+
+// Absolute social image URL (OG/Twitter want absolute URLs).
+const ogImageUrl =
+  /^https?:\/\//.test(ogImage)
+    ? ogImage
+    : Astro.site
+      ? new URL(ogImage, Astro.site).href
+      : new URL(ogImage, Astro.url).href
+
+// Only emit JSON-LD when it carries the required shape; escape `<` so values
+// containing `</script>` (or any markup) can't break out of the script tag.
+const hasValidJsonLd = Boolean(jsonLd && jsonLd['@context'] && jsonLd['@type'])
+const jsonLdSafe = hasValidJsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : ''
 
 // GA4 is inert unless a measurement ID is configured at build time.
 const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
@@ -42,13 +64,16 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="SproutChores" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={ogImageUrl} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
 
-    {/* JSON-LD structured data, only when supplied. set:html stringifies safely. */}
-    {jsonLd && (
-      <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {/* JSON-LD: only when valid; `<` escaped so values can't close the tag. */}
+    {hasValidJsonLd && (
+      <script type="application/ld+json" set:html={jsonLdSafe} />
     )}
 
     {/* GA4 (gtag) — emitted ONLY when PUBLIC_GA4_ID is set. Absent => no script. */}
@@ -91,13 +116,16 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
         getVariant,
       })
 
-      const report = (name: string) => (m: Metric) =>
+      const report = (name: string) => (m: Metric) => {
+        const precision = name === 'CLS' ? 1000 : 1
+        const value = Math.round(m.value * precision) / precision
         metrics.track('web_vital', {
           metric: name,
-          value: Math.round(m.value * (name === 'CLS' ? 1000 : 1)) / (name === 'CLS' ? 1000 : 1),
+          value,
           rating: m.rating,
           id: m.id,
         })
+      }
 
       onLCP(report('LCP'))
       onINP(report('INP'))

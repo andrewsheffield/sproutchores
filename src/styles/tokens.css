@@ -14,7 +14,12 @@
    px, etc.) are allowed ONLY in this file; everything else uses var(--token).
 ============================================================================ */
 
-/* ---- CONTROL THEME -------------------------------------------------------- */
+/* ---- CONTROL THEME (also the base fallback) ------------------------------
+   Scoped to both bare `:root` and `:root[data-theme="control"]` so an unset or
+   unknown `data-theme` still resolves the full token set (defense-in-depth for
+   the theming seam) — the control look is the safe default. A future skin adds
+   its own `:root[data-theme="..."]` block to override these. */
+:root,
 :root[data-theme="control"] {
   /* Color — warm paper canvas, sprout-green primary, apricot accent.
      Contrast (WCAG AA, control theme):
