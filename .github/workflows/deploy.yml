@@ -39,6 +39,9 @@ jobs:
         run: npm ci
 
       - name: Build site
+        env:
+          # GA4 Measurement ID is public (it ships in the page HTML); fine in source.
+          PUBLIC_GA4_ID: 'G-9R7L8S2T9F'
         run: npm run build
 
       - name: Upload Pages artifact
