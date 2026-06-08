@@ -6,7 +6,7 @@ import { glob } from 'astro/loaders'
 const pages = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/pages' }),
   schema: z.object({
-    type: z.enum(['age', 'category']),
+    type: z.enum(['age', 'category', 'guide']),
     target_keyword: z.string(),
     secondary_keywords: z.array(z.string()).default([]),
     title: z.string(),

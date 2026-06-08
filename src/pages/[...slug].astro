@@ -18,6 +18,7 @@ export async function getStaticPaths() {
   return all
     .filter((e) => {
       if (e.data.type === 'age') return isPublished(e.data.publish_date)
+      if (e.data.type === 'guide') return isPublished(e.data.publish_date)
       if (e.data.type === 'category') return isHubLive(all, e.id)
       return false
     })
@@ -29,7 +30,7 @@ const d = entry.data
 const isHub = d.type === 'category'
 
 // Dataset-driven chore list for the static (SEO / no-JS) render — age pages only.
-const band = !isHub && typeof d.age === 'number' ? bandForAge(d.age) : undefined
+const band = d.type === 'age' && typeof d.age === 'number' ? bandForAge(d.age) : undefined
 
 // First sentence of a longer intro — a tidy teaser for the hub directory list.
 function firstSentence(text) {
@@ -143,7 +144,7 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       <p class="page-intro">{d.intro}</p>
     </header>
 
-    {!isHub && (
+    {!isHub && typeof d.age === 'number' && (
       <div class="generator-wrap">
         <ChoreChartGenerator age={d.age} />
       </div>
