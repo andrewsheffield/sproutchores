@@ -58,6 +58,11 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
       display: flex;
       justify-content: center;
     }
+    /* The class sets display:flex, which would override the [hidden] attribute's
+       UA display:none — so restore it explicitly, or the banner never dismisses. */
+    .consent[hidden] {
+      display: none;
+    }
     .consent__inner {
       max-width: var(--container-max);
       width: 100%;
