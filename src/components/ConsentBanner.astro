@@ -1,0 +1,107 @@
+---
+// Cookie consent banner + Google Consent Mode v2. GA4 is loaded by BaseLayout with
+// consent DEFAULTING TO DENIED, so no analytics cookies are set until the visitor
+// accepts here. The choice is stored in localStorage ('sc_consent') and re-applied
+// on later visits by BaseLayout's gtag init. Tokens-only, accessible, no deps.
+// Rendered only when GA4 is configured (no analytics => no banner needed).
+const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
+---
+
+{ga4Id && (
+  <div id="sc-consent" class="consent" role="dialog" aria-label="Cookie consent" aria-live="polite" hidden>
+    <div class="consent__inner">
+      <p class="consent__text">
+        We use privacy-friendly analytics to see which pages help families — only if you say yes.
+        Nothing you type into the chart generator is ever sent to us.
+        <a href="/privacy/">Privacy policy</a>.
+      </p>
+      <div class="consent__actions">
+        <button type="button" class="consent__btn consent__btn--ghost" id="sc-consent-decline">Decline</button>
+        <button type="button" class="consent__btn consent__btn--primary" id="sc-consent-accept">Accept analytics</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function () {
+      var KEY = 'sc_consent'
+      var el = document.getElementById('sc-consent')
+      if (!el) return
+      var stored
+      try { stored = localStorage.getItem(KEY) } catch (e) {}
+      // Show the banner only if no choice has been made yet.
+      if (stored !== 'granted' && stored !== 'denied') el.hidden = false
+
+      function decide(value) {
+        try { localStorage.setItem(KEY, value) } catch (e) {}
+        if (value === 'granted' && typeof window.gtag === 'function') {
+          window.gtag('consent', 'update', {
+            analytics_storage: 'granted',
+          })
+        }
+        el.hidden = true
+      }
+      var a = document.getElementById('sc-consent-accept')
+      var d = document.getElementById('sc-consent-decline')
+      if (a) a.addEventListener('click', function () { decide('granted') })
+      if (d) d.addEventListener('click', function () { decide('denied') })
+    })()
+  </script>
+
+  <style>
+    .consent {
+      position: fixed;
+      inset-inline: 0;
+      bottom: 0;
+      z-index: 200;
+      padding: var(--space-3);
+      display: flex;
+      justify-content: center;
+    }
+    .consent__inner {
+      max-width: var(--container-max);
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3) var(--space-5);
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-surface);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+    }
+    .consent__text {
+      margin: var(--space-0);
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      line-height: var(--leading-normal);
+      flex: 1 1 18rem;
+    }
+    .consent__actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+    .consent__btn {
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      font-weight: var(--weight-medium);
+      font-size: var(--text-sm);
+      cursor: pointer;
+      border: var(--border-width) solid transparent;
+    }
+    .consent__btn--primary {
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+    .consent__btn--primary:hover { background: var(--color-primary-hover); }
+    .consent__btn--ghost {
+      background: transparent;
+      color: var(--color-muted);
+      border-color: var(--color-border);
+    }
+    .consent__btn--ghost:hover { color: var(--color-text); }
+  </style>
+)}

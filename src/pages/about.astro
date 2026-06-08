@@ -1,0 +1,51 @@
+---
+import TextPage from '../layouts/TextPage.astro'
+import { author } from '../data/author'
+---
+
+<TextPage
+  title="About SproutChores — A Real Family Behind the Charts"
+  description="SproutChores is made by Andrew and the SproutChores family — parents of four (and foster parents) who've run chore charts at home for 15+ years. Here's our story and approach."
+  h1="About SproutChores"
+>
+  <p class="muted">{author.byline}</p>
+
+  <p>
+    SproutChores exists for one reason: the chore charts and advice you find here come from a
+    real family that has actually done this — not from a content farm guessing at what parents
+    want to hear.
+  </p>
+
+  <h2>Who we are</h2>
+  {author.bioParagraphs.map((p) => <p>{p}</p>)}
+
+  <h2>What we believe about chores</h2>
+  <p>
+    The single idea that runs through everything on this site: <strong>a chore chart is a tracking
+    tool for parents, not a motivation gimmick for kids.</strong> Motivation should come from the
+    expectation and the structure of the family — the simple, repeated idea that we all contribute —
+    not from stickers, prizes, or pay. We keep rewards and screen time separate from chores, and any
+    allowance we use is tied to quality, consistency, and attitude over time rather than handed out
+    task by task.
+  </p>
+  <p>
+    We also believe the right chore depends entirely on the child's age and stage. A two-year-old
+    "helping" you isn't the same job as a teenager running real responsibilities — so our charts are
+    built age by age, with honest expectations for each.
+  </p>
+
+  <h2>How this site is made</h2>
+  <p>
+    Our chore-chart generator runs entirely in your browser — you can build, personalize, and print
+    a chart without an account, and nothing you type is ever sent to us. Every page is written to be
+    genuinely useful and grounded in real experience, then reviewed for accuracy before it goes live.
+    If something here helped your family, that's the whole point.
+  </p>
+
+  <h2>Get in touch</h2>
+  <p>
+    Questions, suggestions, or a chore idea that worked wonders in your house?
+    Email us at <a href="mailto:hello@sproutchores.com">hello@sproutchores.com</a> — or see the
+    <a href="/contact/">contact page</a>.
+  </p>
+</TextPage>
