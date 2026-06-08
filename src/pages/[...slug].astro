@@ -5,16 +5,22 @@ import ChoreChartGenerator from '../components/ChoreChartGenerator.astro'
 import Breadcrumbs from '../components/Breadcrumbs.astro'
 import { bandForAge } from '../data/chores-by-age'
 import { isPublished } from '../lib/publish-gate'
+import { isHubLive } from '../lib/hub'
 import { author } from '../data/author'
 import '../styles/print.css'
 
-// One static path per PUBLISHED age or category-hub entry. Future-dated entries
-// are excluded — the scheduled-publish cron rebuilds and flips them live on their
-// publish_date.
+// One static path per PUBLISHED age page, plus category hubs that are "live" —
+// published AND aggregating enough member pages (isHubLive). A hub with too few
+// members is suppressed (thin/intent-missing) and self-restores once the cluster
+// fills. Future-dated entries are excluded; the scheduled cron flips them live.
 export async function getStaticPaths() {
   const all = await getCollection('pages')
   return all
-    .filter((e) => (e.data.type === 'age' || e.data.type === 'category') && isPublished(e.data.publish_date))
+    .filter((e) => {
+      if (e.data.type === 'age') return isPublished(e.data.publish_date)
+      if (e.data.type === 'category') return isHubLive(all, e.id)
+      return false
+    })
     .map((e) => ({ params: { slug: e.id }, props: { entry: e, all } }))
 }
 
@@ -129,7 +135,7 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
 <BaseLayout title={d.title} description={d.meta_description} jsonLd={articleJsonLd}>
   <div class="page-wrapper">
 
-    <Breadcrumbs category={d.category} title={d.h1} />
+    <Breadcrumbs category={d.category} categoryLive={d.category ? isHubLive(all, d.category) : false} title={d.h1} />
 
     <header class="page-header">
       <h1 class="page-title">{d.h1}</h1>

@@ -1,6 +1,8 @@
 ---
 import '../styles/tokens.css'
 import { getVariant } from '../lib/variant-config'
+import { getCollection } from 'astro:content'
+import { isHubLive } from '../lib/hub'
 
 /** Minimal valid JSON-LD: must carry @context and @type. */
 export interface JsonLd {
@@ -57,9 +59,13 @@ const normalisePath = (p: string) => {
   return trimmed === '' ? '/' : trimmed
 }
 const currentPath = normalisePath(Astro.url.pathname)
+// Only surface the "Chore Charts" hub link when the hub is actually live (a real
+// directory). Until then nav stays Home-only — no link to a suppressed/thin hub.
+const allPages = await getCollection('pages')
+const choreHubLive = isHubLive(allPages, 'chore-charts-by-age')
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/chore-charts-by-age/', label: 'Chore Charts' },
+  ...(choreHubLive ? [{ href: '/chore-charts-by-age/', label: 'Chore Charts' }] : []),
 ] as const
 const isActive = (href: string) => normalisePath(href) === currentPath
 ---

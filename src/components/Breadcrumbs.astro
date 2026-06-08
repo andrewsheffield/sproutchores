@@ -7,15 +7,18 @@ import { categoryMeta } from '../data/categories'
 export interface Props {
   /** Category id from the entry (may be null). */
   category?: string | null
+  /** Whether the category hub is live (published + enough members). Off = render
+   *  the category as plain text, never a broken link. */
+  categoryLive?: boolean
   /** Current page title (the leaf crumb). */
   title: string
 }
 
-const { category, title } = Astro.props
+const { category, categoryLive = false, title } = Astro.props
 const cat = categoryMeta(category)
 
 const site = Astro.site?.href.replace(/\/$/, '') ?? ''
-const catHref = cat?.hubSlug ? `/${cat.hubSlug}/` : undefined
+const catHref = categoryLive && cat?.hubSlug ? `/${cat.hubSlug}/` : undefined
 
 // Visible trail. The leaf (current page) is never a link.
 const trail: Array<{ label: string; href?: string }> = [
@@ -40,16 +43,21 @@ const jsonLdSafe = JSON.stringify(jsonLd).replace(/</g, '\\u003c')
 
 <nav class="breadcrumbs" aria-label="Breadcrumb">
   <ol class="breadcrumbs__list" role="list">
-    {trail.map((crumb, i) => (
-      <li class="breadcrumbs__item">
-        {crumb.href ? (
-          <a class="breadcrumbs__link" href={crumb.href}>{crumb.label}</a>
-        ) : (
-          <span class="breadcrumbs__current" aria-current="page">{crumb.label}</span>
-        )}
-        {i < trail.length - 1 && <span class="breadcrumbs__sep" aria-hidden="true">›</span>}
-      </li>
-    ))}
+    {trail.map((crumb, i) => {
+      const isLast = i === trail.length - 1
+      return (
+        <li class="breadcrumbs__item">
+          {crumb.href ? (
+            <a class="breadcrumbs__link" href={crumb.href}>{crumb.label}</a>
+          ) : isLast ? (
+            <span class="breadcrumbs__current" aria-current="page">{crumb.label}</span>
+          ) : (
+            <span class="breadcrumbs__text">{crumb.label}</span>
+          )}
+          {!isLast && <span class="breadcrumbs__sep" aria-hidden="true">›</span>}
+        </li>
+      )
+    })}
   </ol>
 </nav>
 
@@ -86,6 +94,9 @@ const jsonLdSafe = JSON.stringify(jsonLd).replace(/</g, '\\u003c')
   .breadcrumbs__current {
     color: var(--color-text);
     font-weight: var(--weight-medium);
+  }
+  .breadcrumbs__text {
+    color: var(--color-muted);
   }
   .breadcrumbs__sep {
     color: var(--color-border);
