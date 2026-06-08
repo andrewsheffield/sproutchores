@@ -59,10 +59,10 @@ while true; do
     rm -f "$REQ"
     echo "→ request ${tok}: rebuild + capture…"
     npm run build >/tmp/shots-build.log 2>&1 || true
-    cap  page-desktop "${URL}/chores-for-a-6-year-old/" 1280 2400
-    cap  page-mobile  "${URL}/chores-for-a-6-year-old/" 390 2600
+    cap  page-desktop "${URL}/chore-chart-for-a-6-year-old/" 1280 2400
+    cap  page-mobile  "${URL}/chore-chart-for-a-6-year-old/" 390 2600
     cap  home-desktop "${URL}/" 1280 1500
-    cap2 page-zoom    "${URL}/chores-for-a-6-year-old/" 820 1500
+    cap2 page-zoom    "${URL}/chore-chart-for-a-6-year-old/" 820 1500
     printf '%s' "$tok" > "$DONE"
     echo "  ✓ request ${tok} done — PNGs in ${OUT}/"
   fi
