@@ -33,12 +33,20 @@ const theme = variant
 const canonicalUrl =
   canonical ?? (Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.href)
 
-// Absolute social image URL (OG/Twitter want absolute URLs). Emitted only when
-// an ogImage prop is actually passed — we don't invent a default image, so a
-// page without one omits og:image/twitter:image entirely (no 404'ing tag).
+// Social share image. Every page gets an auto-generated 1200×630 card at
+// /og/<key>.png (see src/pages/og/[...route].ts); the key derives from the path
+// ('home' for root). An explicit ogImage prop overrides it. So links always unfurl.
+const ogKey = (() => {
+  const p = Astro.url.pathname.replace(/^\/+|\/+$/g, '')
+  return p === '' ? 'home' : p
+})()
+const autoOgUrl = Astro.site
+  ? new URL(`/og/${ogKey}.png`, Astro.site).href
+  : `/og/${ogKey}.png`
+
 const ogImageUrl =
   ogImage === undefined
-    ? undefined
+    ? autoOgUrl
     : /^https?:\/\//.test(ogImage)
       ? ogImage
       : Astro.site
