@@ -20,9 +20,9 @@ export interface Props {
 }
 
 // Default age 6 keeps existing behaviour; pages pass their own age. The supported
-// dataset range is 4–9, so clamp to avoid an out-of-band initial render.
-const SUPPORTED_MIN = 4
-const SUPPORTED_MAX = 9
+// dataset range is 2–17, so clamp to avoid an out-of-band initial render.
+const SUPPORTED_MIN = 2
+const SUPPORTED_MAX = 17
 const { age = 6 } = Astro.props
 const initialAge = Math.min(SUPPORTED_MAX, Math.max(SUPPORTED_MIN, Math.round(age)))
 
@@ -43,12 +43,12 @@ const dayColumns = initialModel.columns.slice(1)
         class="control-input control-input--number"
         id="ccg-age"
         type="number"
-        min="4"
-        max="9"
+        min="2"
+        max="17"
         value={initialAge}
         aria-describedby="ccg-age-hint"
       />
-      <span id="ccg-age-hint" class="control-hint">Ages 4–9 supported</span>
+      <span id="ccg-age-hint" class="control-hint">Ages 2–17 supported</span>
     </div>
 
     <div class="control-row">

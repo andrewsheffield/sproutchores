@@ -14,8 +14,8 @@ describe('chartForAge', () => {
     expect(chartForAge(5).ageBand).toBe('4-5')
   })
   it('clamps out-of-range ages to nearest band', () => {
-    expect(chartForAge(1).ageBand).toBe('4-5')
-    expect(chartForAge(50).ageBand).toBe('8-9')
+    expect(chartForAge(1).ageBand).toBe('2-3')
+    expect(chartForAge(50).ageBand).toBe('13-17')
   })
   it('throws on non-finite age', () => {
     expect(() => chartForAge(NaN)).toThrow()
