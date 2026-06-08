@@ -59,7 +59,7 @@ const normalisePath = (p: string) => {
 const currentPath = normalisePath(Astro.url.pathname)
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/chores-for-a-6-year-old/', label: 'Chore Charts' },
+  { href: '/chore-charts-by-age/', label: 'Chore Charts' },
 ] as const
 const isActive = (href: string) => normalisePath(href) === currentPath
 ---

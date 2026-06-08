@@ -8,20 +8,31 @@ import { isPublished } from '../lib/publish-gate'
 import { author } from '../data/author'
 import '../styles/print.css'
 
-// One static path per PUBLISHED age entry. Future-dated entries are excluded —
-// the scheduled-publish cron rebuilds and flips them live on their publish_date.
+// One static path per PUBLISHED age or category-hub entry. Future-dated entries
+// are excluded — the scheduled-publish cron rebuilds and flips them live on their
+// publish_date.
 export async function getStaticPaths() {
   const all = await getCollection('pages')
   return all
-    .filter((e) => e.data.type === 'age' && isPublished(e.data.publish_date))
+    .filter((e) => (e.data.type === 'age' || e.data.type === 'category') && isPublished(e.data.publish_date))
     .map((e) => ({ params: { slug: e.id }, props: { entry: e, all } }))
 }
 
 const { entry, all } = Astro.props
 const d = entry.data
+const isHub = d.type === 'category'
 
-// Dataset-driven chore list for the static (SEO / no-JS) render.
-const band = typeof d.age === 'number' ? bandForAge(d.age) : undefined
+// Dataset-driven chore list for the static (SEO / no-JS) render — age pages only.
+const band = !isHub && typeof d.age === 'number' ? bandForAge(d.age) : undefined
+
+// Hub: the member pages are every PUBLISHED entry whose category is this hub,
+// ordered by age. Computed at render time so the ladder fills in as pages publish.
+const members = isHub
+  ? all
+      .filter((e) => e.data.category === entry.id && isPublished(e.data.publish_date))
+      .sort((a, b) => (a.data.age ?? 999) - (b.data.age ?? 999))
+      .map((e) => ({ slug: e.id, h1: e.data.h1, intro: e.data.intro }))
+  : []
 
 // Resolve related slugs → { slug, title } using the loaded collection.
 const byId = new Map(all.map((e) => [e.id, e]))
@@ -86,6 +97,27 @@ const faqJsonLd = d.faq.length
 
 const howToSafe = JSON.stringify(howToJsonLd).replace(/</g, '\\u003c')
 const faqSafe = faqJsonLd ? JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') : ''
+
+// Hub: CollectionPage + ItemList of the member pages (helps Google understand the
+// hub→members relationship). Only emitted when there are published members.
+const collectionJsonLd = isHub && members.length
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: d.title,
+      description: d.meta_description,
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: members.map((m, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: `${site}/${m.slug}/`,
+          name: m.h1,
+        })),
+      },
+    }
+  : undefined
+const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).replace(/</g, '\\u003c') : ''
 ---
 
 <BaseLayout title={d.title} description={d.meta_description} jsonLd={articleJsonLd}>
@@ -102,6 +134,20 @@ const faqSafe = faqJsonLd ? JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') :
     <div class="generator-wrap">
       <ChoreChartGenerator age={d.age} />
     </div>
+
+    {isHub && members.length > 0 && (
+      <section class="content-section" aria-labelledby="browse-heading">
+        <h2 id="browse-heading">Browse chore charts by age</h2>
+        <ul class="member-list" role="list">
+          {members.map((m) => (
+            <li class="member-list__item">
+              <a class="member-list__link" href={`/${m.slug}/`}>{m.h1}</a>
+              <p class="member-list__blurb">{m.intro}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {band && (
       <section class="content-section" aria-labelledby="age-chores-heading">
@@ -162,8 +208,9 @@ const faqSafe = faqJsonLd ? JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') :
 
   </div>
 
-  <script type="application/ld+json" set:html={howToSafe} />
+  {!isHub && <script type="application/ld+json" set:html={howToSafe} />}
   {faqJsonLd && <script type="application/ld+json" set:html={faqSafe} />}
+  {collectionJsonLd && <script type="application/ld+json" set:html={collectionSafe} />}
 </BaseLayout>
 
 <style>
@@ -295,5 +342,34 @@ const faqSafe = faqJsonLd ? JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') :
   }
   .related-list a {
     font-weight: var(--weight-medium);
+  }
+
+  /* Hub member list — the age ladder */
+  .member-list {
+    list-style: none;
+    padding: var(--space-0);
+    margin: var(--space-0);
+    display: grid;
+    gap: var(--space-3);
+  }
+  .member-list__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .member-list__link {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+  }
+  .member-list__blurb {
+    margin: var(--space-0);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    line-height: var(--leading-normal);
   }
 </style>
