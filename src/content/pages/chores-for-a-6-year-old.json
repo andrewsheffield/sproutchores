@@ -1,7 +1,11 @@
 {
   "type": "age",
   "target_keyword": "chore chart for a 6 year old",
-  "secondary_keywords": ["6 year old chores", "age appropriate chores for 6 year old", "chore list for a 6 year old"],
+  "secondary_keywords": [
+    "6 year old chores",
+    "age appropriate chores for 6 year old",
+    "chore list for a 6 year old"
+  ],
   "title": "Chore Chart for a 6-Year-Old (Free Printable)",
   "meta_description": "Make a free printable chore chart for your 6-year-old in seconds. Pick age-appropriate tasks, add your child's name, and print or save as PDF — no sign-up needed.",
   "h1": "Chore Chart for a 6-Year-Old",
@@ -23,9 +27,17 @@
     }
   ],
   "faq": [
-    { "q": "What chores can a 6-year-old do?", "a": "A typical 6-year-old can make their bed, set the table, feed a pet, tidy their room, water plants, and sort laundry by colour — tasks they can finish independently with a little initial guidance." },
-    { "q": "Should a 6-year-old be paid for chores?", "a": "In our house, everyday family chores aren't paid — they're simply part of belonging to the family. We do pay a small weekly allowance from about age five or six, but it's tied to doing the work well and with a good attitude, not to any single task. That way kids learn responsibility first and earning second." }
+    {
+      "q": "What chores can a 6-year-old do?",
+      "a": "A typical 6-year-old can make their bed, set the table, feed a pet, tidy their room, water plants, and sort laundry by colour — tasks they can finish independently with a little initial guidance."
+    },
+    {
+      "q": "Should a 6-year-old be paid for chores?",
+      "a": "In our house, everyday family chores aren't paid — they're simply part of belonging to the family. We do pay a small weekly allowance from about age five or six, but it's tied to doing the work well and with a good attitude, not to any single task. That way kids learn responsibility first and earning second."
+    }
   ],
-  "related": [],
+  "related": [
+    "chore-chart-for-an-8-year-old"
+  ],
   "publish_date": "2026-06-01"
 }
