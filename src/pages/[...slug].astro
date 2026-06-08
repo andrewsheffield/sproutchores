@@ -1,0 +1,299 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import ChoreChartGenerator from '../components/ChoreChartGenerator.astro'
+import Breadcrumbs from '../components/Breadcrumbs.astro'
+import { bandForAge } from '../data/chores-by-age'
+import { isPublished } from '../lib/publish-gate'
+import { author } from '../data/author'
+import '../styles/print.css'
+
+// One static path per PUBLISHED age entry. Future-dated entries are excluded —
+// the scheduled-publish cron rebuilds and flips them live on their publish_date.
+export async function getStaticPaths() {
+  const all = await getCollection('pages')
+  return all
+    .filter((e) => e.data.type === 'age' && isPublished(e.data.publish_date))
+    .map((e) => ({ params: { slug: e.id }, props: { entry: e, all } }))
+}
+
+const { entry, all } = Astro.props
+const d = entry.data
+
+// Dataset-driven chore list for the static (SEO / no-JS) render.
+const band = typeof d.age === 'number' ? bandForAge(d.age) : undefined
+
+// Resolve related slugs → { slug, title } using the loaded collection.
+const byId = new Map(all.map((e) => [e.id, e]))
+const related = (d.related ?? [])
+  .map((slug) => byId.get(slug))
+  .filter((e) => e && isPublished(e.data.publish_date))
+  .map((e) => ({ slug: e.id, title: e.data.h1 }))
+
+// Split a section body into renderable blocks: a block whose lines all start
+// with "- " becomes a <ul>; everything else is a paragraph. Lets generated
+// content include scannable bullets without a full markdown dependency.
+function renderBlocks(body) {
+  return body.split('\n\n').map((block) => {
+    const lines = block.split('\n').filter((l) => l.trim().length > 0)
+    const isList = lines.length > 0 && lines.every((l) => l.trim().startsWith('- '))
+    return isList
+      ? { kind: 'list', items: lines.map((l) => l.replace(/^\s*-\s+/, '')) }
+      : { kind: 'para', text: block }
+  })
+}
+
+const site = Astro.site?.href.replace(/\/$/, '') ?? ''
+const pageUrl = `${site}/${entry.id}/`
+
+// --- JSON-LD: Article (carries author E-E-A-T) + HowTo (tool rich result). ---
+const articleJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  description: d.meta_description,
+  author: author.person,
+  publisher: { '@type': 'Organization', name: 'SproutChores' },
+  datePublished: d.publish_date,
+  mainEntityOfPage: pageUrl,
+}
+
+const howToJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: `How to make a ${d.target_keyword}`,
+  description: d.meta_description,
+  step: [
+    { '@type': 'HowToStep', name: 'Pick age-appropriate chores', text: 'Choose tasks your child can complete independently; the generator pre-loads a sensible list you can edit.' },
+    { '@type': 'HowToStep', name: "Enter your child's name", text: "Type your child's name in the generator above to personalise the chart title." },
+    { '@type': 'HowToStep', name: 'Customise the chore list', text: 'Add or remove chores until the chart matches your household routine.' },
+    { '@type': 'HowToStep', name: 'Print or save as PDF', text: 'Click “Print / Save as PDF” to get a clean, printer-ready chart with a box to tick for each day of the week.' },
+  ],
+  tool: [{ '@type': 'HowToTool', name: 'SproutChores printable chore-chart generator' }],
+}
+
+const faqJsonLd = d.faq.length
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: d.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    }
+  : undefined
+
+const howToSafe = JSON.stringify(howToJsonLd).replace(/</g, '\\u003c')
+const faqSafe = faqJsonLd ? JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') : ''
+---
+
+<BaseLayout title={d.title} description={d.meta_description} jsonLd={articleJsonLd}>
+  <div class="page-wrapper">
+
+    <Breadcrumbs category={d.category} title={d.h1} />
+
+    <header class="page-header">
+      <h1 class="page-title">{d.h1}</h1>
+      <p class="byline">{author.byline}</p>
+      <p class="page-intro">{d.intro}</p>
+    </header>
+
+    <div class="generator-wrap">
+      <ChoreChartGenerator age={d.age} />
+    </div>
+
+    {band && (
+      <section class="content-section" aria-labelledby="age-chores-heading">
+        <h2 id="age-chores-heading">Age-appropriate chores for {d.h1.replace(/^Chore Chart for /i, '').replace(/\s*\(.*$/, '')}</h2>
+        <p>Every chore below is pre-loaded in the generator above and is something a child in this age range can realistically manage with a little initial guidance:</p>
+        <ul class="chore-checklist" role="list">
+          {band.chores.map((chore) => (
+            <li class="chore-checklist__item">
+              <span class="chore-checklist__label">{chore.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {d.sections.map((section, i) => (
+      <section class="content-section" aria-labelledby={`section-${i}`}>
+        <h2 id={`section-${i}`}>{section.heading}</h2>
+        {renderBlocks(section.body).map((block) =>
+          block.kind === 'list' ? (
+            <ul class="tips-list">{block.items.map((it) => <li>{it}</li>)}</ul>
+          ) : (
+            <p>{block.text}</p>
+          )
+        )}
+      </section>
+    ))}
+
+    {d.faq.length > 0 && (
+      <section class="content-section" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Frequently asked questions</h2>
+        <dl class="faq">
+          {d.faq.map((f) => (
+            <div class="faq__item">
+              <dt class="faq__q">{f.q}</dt>
+              <dd class="faq__a">{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )}
+
+    <section class="author-card" aria-labelledby="author-heading">
+      <h2 id="author-heading" class="author-card__name">About the author</h2>
+      {author.bioParagraphs.map((p) => <p class="author-card__bio">{p}</p>)}
+    </section>
+
+    {related.length > 0 && (
+      <section class="content-section" aria-labelledby="related-heading">
+        <h2 id="related-heading">More chore charts</h2>
+        <ul class="related-list" role="list">
+          {related.map((r) => (
+            <li><a href={`/${r.slug}/`}>{r.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+  </div>
+
+  <script type="application/ld+json" set:html={howToSafe} />
+  {faqJsonLd && <script type="application/ld+json" set:html={faqSafe} />}
+</BaseLayout>
+
+<style>
+  .page-wrapper {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+    padding-block: var(--space-7);
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .page-header {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--measure);
+  }
+  .page-title {
+    margin-block: var(--space-0);
+  }
+  .byline {
+    margin: var(--space-0);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-primary);
+  }
+  .page-intro {
+    font-size: var(--text-lg);
+    color: var(--color-muted);
+    line-height: var(--leading-normal);
+    margin-block: var(--space-0);
+  }
+
+  .content-section {
+    display: grid;
+    gap: var(--space-4);
+    max-width: var(--measure);
+  }
+
+  .chore-checklist {
+    list-style: none;
+    padding: var(--space-0);
+    margin: var(--space-0);
+    display: grid;
+    gap: var(--space-2);
+  }
+  .chore-checklist__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4);
+  }
+  .chore-checklist__item::before {
+    content: '';
+    display: block;
+    width: var(--space-5);
+    height: var(--space-5);
+    flex-shrink: 0;
+    border: var(--border-width) solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-accent-soft);
+  }
+  .chore-checklist__label {
+    font-size: var(--text-base);
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+  }
+
+  .tips-list {
+    padding-inline-start: var(--space-5);
+    display: grid;
+    gap: var(--space-3);
+  }
+  .tips-list li {
+    line-height: var(--leading-normal);
+    color: var(--color-text);
+  }
+
+  /* FAQ */
+  .faq {
+    display: grid;
+    gap: var(--space-4);
+    margin: var(--space-0);
+  }
+  .faq__item {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .faq__q {
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+  }
+  .faq__a {
+    margin: var(--space-0);
+    color: var(--color-text);
+    line-height: var(--leading-normal);
+  }
+
+  /* Author card — E-E-A-T credibility block */
+  .author-card {
+    max-width: var(--measure);
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background-color: var(--color-surface-sunken);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .author-card__name {
+    font-size: var(--text-lg);
+    margin-block: var(--space-0);
+  }
+  .author-card__bio {
+    margin: var(--space-0);
+    color: var(--color-muted);
+    line-height: var(--leading-normal);
+  }
+
+  /* Related links */
+  .related-list {
+    list-style: none;
+    padding: var(--space-0);
+    margin: var(--space-0);
+    display: grid;
+    gap: var(--space-2);
+  }
+  .related-list a {
+    font-weight: var(--weight-medium);
+  }
+</style>

@@ -1,0 +1,31 @@
+{
+  "type": "age",
+  "target_keyword": "chore chart for a 6 year old",
+  "secondary_keywords": ["6 year old chores", "age appropriate chores for 6 year old", "chore list for a 6 year old"],
+  "title": "Chore Chart for a 6-Year-Old (Free Printable)",
+  "meta_description": "Make a free printable chore chart for your 6-year-old in seconds. Pick age-appropriate tasks, add your child's name, and print or save as PDF — no sign-up needed.",
+  "h1": "Chore Chart for a 6-Year-Old",
+  "intro": "Six is a brilliant age to start building real responsibility. Use the generator below to make a personalised, printable chore chart in under a minute — no account, no fuss.",
+  "age": 6,
+  "category": "chore-charts-by-age",
+  "sections": [
+    {
+      "heading": "Why chores matter at age 6",
+      "body": "Around their sixth birthday, most children have the motor skills and attention span to complete simple household tasks from start to finish — without a grown-up finishing it for them. Research on child development consistently shows that children who do regular chores develop stronger executive function, a greater sense of belonging in the family, and better self-regulation skills later in life.\n\nThe key is to match the chore to what the child can actually do today, then step back and let them own it — even if the bed isn't perfectly straight. Mastery and pride in a job done matter far more than perfection."
+    },
+    {
+      "heading": "What these chores teach",
+      "body": "Making the bed and tidying the bedroom teach ownership of personal space — two minutes each morning that build a life-long habit. Setting the table and feeding a pet give children a meaningful role in caring for others, which research links to greater empathy. Watering the plants and sorting laundry by colour develop patience and an eye for pattern — cognitive skills that transfer well into schoolwork."
+    },
+    {
+      "heading": "Tips for making chores stick",
+      "body": "- Do it together the first few times — demonstration beats instruction every time at this age.\n- Put the chart where it's visible — print it and stick it on the fridge or bedroom door, not a buried bookmark.\n- Tick the boxes together each evening; the ritual of checking off tasks is motivating in itself.\n- Adjust the list as skills grow — by age 7 or 8, most children are ready to load the dishwasher or take out the bins."
+    }
+  ],
+  "faq": [
+    { "q": "What chores can a 6-year-old do?", "a": "A typical 6-year-old can make their bed, set the table, feed a pet, tidy their room, water plants, and sort laundry by colour — tasks they can finish independently with a little initial guidance." },
+    { "q": "Should a 6-year-old be paid for chores?", "a": "In our house, everyday family chores aren't paid — they're simply part of belonging to the family. We do pay a small weekly allowance from about age five or six, but it's tied to doing the work well and with a good attitude, not to any single task. That way kids learn responsibility first and earning second." }
+  ],
+  "related": [],
+  "publish_date": "2026-06-01"
+}

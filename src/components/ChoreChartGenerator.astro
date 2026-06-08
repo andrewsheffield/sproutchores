@@ -14,9 +14,21 @@ import { chartForAge } from '../lib/generator-core'
 import { buildPrintableChartModel } from '../lib/printable-chart'
 import { choreIconSvg, iconSvg } from '../lib/chore-icons'
 
-const initialModel = buildPrintableChartModel({ ...chartForAge(6), childName: undefined })
+export interface Props {
+  /** Representative age the chart starts on. Clamped to the supported range. */
+  age?: number
+}
+
+// Default age 6 keeps existing behaviour; pages pass their own age. The supported
+// dataset range is 4–9, so clamp to avoid an out-of-band initial render.
+const SUPPORTED_MIN = 4
+const SUPPORTED_MAX = 9
+const { age = 6 } = Astro.props
+const initialAge = Math.min(SUPPORTED_MAX, Math.max(SUPPORTED_MIN, Math.round(age)))
+
+const initialModel = buildPrintableChartModel({ ...chartForAge(initialAge), childName: undefined })
 // Suggestions for the add-row datalist: the current age band's default chores.
-const initialSuggestions = chartForAge(6).chores.map((c) => c.label)
+const initialSuggestions = chartForAge(initialAge).chores.map((c) => c.label)
 // Day columns + a trailing remove-action column. The remove header is visually
 // hidden (the per-row buttons carry their own labels) but keeps the grid square.
 const dayColumns = initialModel.columns.slice(1)
@@ -33,7 +45,7 @@ const dayColumns = initialModel.columns.slice(1)
         type="number"
         min="4"
         max="9"
-        value="6"
+        value={initialAge}
         aria-describedby="ccg-age-hint"
       />
       <span id="ccg-age-hint" class="control-hint">Ages 4–9 supported</span>
