@@ -25,13 +25,19 @@ const isHub = d.type === 'category'
 // Dataset-driven chore list for the static (SEO / no-JS) render — age pages only.
 const band = !isHub && typeof d.age === 'number' ? bandForAge(d.age) : undefined
 
+// First sentence of a longer intro — a tidy teaser for the hub directory list.
+function firstSentence(text) {
+  const m = (text || '').match(/^.*?[.!?](\s|$)/)
+  return (m ? m[0] : text || '').trim()
+}
+
 // Hub: the member pages are every PUBLISHED entry whose category is this hub,
 // ordered by age. Computed at render time so the ladder fills in as pages publish.
 const members = isHub
   ? all
       .filter((e) => e.data.category === entry.id && isPublished(e.data.publish_date))
       .sort((a, b) => (a.data.age ?? 999) - (b.data.age ?? 999))
-      .map((e) => ({ slug: e.id, h1: e.data.h1, intro: e.data.intro }))
+      .map((e) => ({ slug: e.id, h1: e.data.h1, blurb: firstSentence(e.data.intro) }))
   : []
 
 // Resolve related slugs → { slug, title } using the loaded collection.
@@ -131,21 +137,40 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       <p class="page-intro">{d.intro}</p>
     </header>
 
-    <div class="generator-wrap">
-      <ChoreChartGenerator age={d.age} />
-    </div>
+    {!isHub && (
+      <div class="generator-wrap">
+        <ChoreChartGenerator age={d.age} />
+      </div>
+    )}
 
-    {isHub && members.length > 0 && (
+    {isHub && (
       <section class="content-section" aria-labelledby="browse-heading">
-        <h2 id="browse-heading">Browse chore charts by age</h2>
-        <ul class="member-list" role="list">
-          {members.map((m) => (
-            <li class="member-list__item">
-              <a class="member-list__link" href={`/${m.slug}/`}>{m.h1}</a>
-              <p class="member-list__blurb">{m.intro}</p>
-            </li>
-          ))}
-        </ul>
+        <h2 id="browse-heading">Find a chore chart for your child's age</h2>
+        {members.length > 0 ? (
+          <>
+            <p>Pick an age to open a free, age-appropriate printable chart and generator:</p>
+            <ul class="member-list" role="list">
+              {members.map((m) => (
+                <li class="member-list__item">
+                  <a class="member-list__link" href={`/${m.slug}/`}>{m.h1}</a>
+                  <p class="member-list__blurb">{m.blurb}</p>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p>More age-specific charts are publishing shortly — check back soon.</p>
+        )}
+      </section>
+    )}
+
+    {isHub && (
+      <section class="content-section generator-cta" aria-labelledby="gen-heading">
+        <h2 id="gen-heading">Or build one right now</h2>
+        <p>Prefer to jump straight in? Set the age, tweak the chores, and print — no sign-up.</p>
+        <div class="generator-wrap">
+          <ChoreChartGenerator age={d.age} />
+        </div>
       </section>
     )}
 
