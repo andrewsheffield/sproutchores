@@ -594,6 +594,7 @@ const dayColumns = initialModel.columns.slice(1)
     box-shadow: var(--shadow-md);
     padding: var(--space-6);
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* let the column shrink so the chart scrolls in-box */
     gap: var(--space-6);
   }
 
@@ -677,6 +678,7 @@ const dayColumns = initialModel.columns.slice(1)
     border: var(--border-width) solid var(--color-border);
     box-shadow: var(--shadow-sm);
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* shrinkable column → chart scrolls in-box */
     gap: var(--space-4);
     /* Reserve vertical space so the initial chart render doesn't shift layout. */
     min-height: var(--space-9);
@@ -711,6 +713,10 @@ const dayColumns = initialModel.columns.slice(1)
        their content), so the wide table would widen every ancestor and scroll the
        WHOLE PAGE. Letting these boxes shrink keeps the scroll INSIDE .chart-scroll. */
     min-width: 0;
+    /* Positioning context so absolutely-positioned descendants (the .sr-only
+       "Remove" header) are clipped by this scroll box instead of escaping it and
+       stretching the document width. */
+    position: relative;
   }
   .generator,
   .generator__controls,

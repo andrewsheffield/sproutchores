@@ -258,13 +258,11 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     padding-inline: var(--space-5);
     padding-block: var(--space-7);
     display: grid;
+    /* minmax(0,1fr) (not the default minmax(auto,1fr)) lets the single column
+       shrink below its content, so a wide child (the chart) scrolls inside its
+       own box instead of widening the whole page. */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-8);
-  }
-  /* Grid children default to min-width:auto and would let wide content (the
-     chart) stretch the single column — and the whole page — past the viewport.
-     Allow them to shrink so any overflow stays contained in its own scroll box. */
-  .page-wrapper > * {
-    min-width: 0;
   }
 
   /* Phone: tighter side gutters so the generator + content get more width. */
