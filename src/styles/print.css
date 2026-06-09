@@ -174,7 +174,7 @@
     border-bottom: 0.5pt solid #ccc;
   }
 
-  /* Day checkbox cells — render as open square boxes for ticking by hand */
+  /* Day cells — the visual box prints as a clean open square to tick by hand. */
   .chart-table__check-cell {
     padding: 0.2cm;
     text-align: center;
@@ -182,23 +182,44 @@
     border-bottom: 0.5pt solid #ccc;
   }
 
-  /* Hide the HTML checkboxes; replace each cell with a printable empty box */
-  .chart-table__checkbox {
-    display: none;
-  }
-
-  .chart-table__check-cell::after {
-    content: '';
+  .chart-table__box {
     display: inline-block;
     width: 0.5cm;
     height: 0.5cm;
     border: 1pt solid #333;
     border-radius: 2pt;
+    background: #fff !important; /* drop the screen accent-soft fill on paper */
     vertical-align: middle;
+  }
+
+  /* Reward variant: print an open star to fill in / sticker. */
+  [data-ccg-variant='reward'] .chart-table__box {
+    border: 0;
+    width: auto;
+    height: auto;
+    font-size: 16pt;
+    line-height: 1;
+    color: #333;
   }
 
   /* Empty state — hide on print (no content to tick) */
   .chart-table__empty {
     display: none;
+  }
+
+  /* Author/credibility card is for the web, not the printed chart — hide it. */
+  .author-card {
+    display: none !important;
+  }
+
+  /* A warm, useful note in place of the chrome — shown ONLY on paper. */
+  .print-note {
+    display: block !important;
+    margin-top: 0.6cm;
+    padding-top: 0.3cm;
+    border-top: 0.5pt solid #ccc;
+    font-size: 9pt;
+    color: #333;
+    font-style: italic;
   }
 }

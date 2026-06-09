@@ -136,13 +136,9 @@ const dayColumns = initialModel.columns.slice(1)
                   />
                 </td>
               )}
-              {dayColumns.map((day) => (
+              {dayColumns.map(() => (
                 <td class="chart-table__check-cell">
-                  <input
-                    type="checkbox"
-                    class="chart-table__checkbox"
-                    aria-label={`${row.chore} — ${day}`}
-                  />
+                  <span class="chart-table__box" aria-hidden="true"></span>
                 </td>
               ))}
               <td class="chart-table__action-cell">
@@ -212,7 +208,16 @@ const dayColumns = initialModel.columns.slice(1)
       <span class="btn__icon" set:html={iconSvg('printer')} />
       <span>Print / Save as PDF</span>
     </button>
+    <p class="generator__print-tip">Tip: choose <strong>Landscape</strong> in the print dialog for the best fit.</p>
   </div>
+
+  <!-- Print-only note: replaces the web chrome on paper with a warm, useful
+       reminder for the parent. Hidden on screen; shown by print.css. -->
+  <p class="print-note">
+    Print in landscape for the best fit. A few reminders from our family to yours:
+    do it together the first few times, keep the chart somewhere everyone can see it,
+    and reward steady effort over a perfect job. — The SproutChores family
+  </p>
 </section>
 
 <!-- =========================================================================
@@ -401,14 +406,13 @@ const dayColumns = initialModel.columns.slice(1)
         }
 
         // Day checkbox cells (one per day column).
-        dayColumns.forEach((day) => {
+        dayColumns.forEach(() => {
           const td = document.createElement('td')
           td.className = 'chart-table__check-cell'
-          const cb = document.createElement('input')
-          cb.type = 'checkbox'
-          cb.className = 'chart-table__checkbox'
-          cb.setAttribute('aria-label', `${row.chore} — ${day}`)
-          td.appendChild(cb)
+          const box = document.createElement('span')
+          box.className = 'chart-table__box'
+          box.setAttribute('aria-hidden', 'true')
+          td.appendChild(box)
           tr.appendChild(td)
         })
 
@@ -831,85 +835,32 @@ const dayColumns = initialModel.columns.slice(1)
      <input type="checkbox"> styled via appearance:none. inline-grid keeps it an
      inline box so the cell's text-align:center centres it under the day header.
      Sized like the article box (--space-5). */
-  .chart-table__checkbox {
-    appearance: none;
-    -webkit-appearance: none;
+  /* Day cell mark. This chart is a PRINT-FIRST tool — you print it and tick by
+     hand — so the on-screen mark is a VISUAL, non-interactive empty box that
+     matches the printed output (no misleading working checkbox). */
+  .chart-table__box {
     box-sizing: border-box;
-    display: inline-grid;
-    place-content: center;
+    display: inline-block;
     vertical-align: middle;
     width: var(--space-5);
     height: var(--space-5);
-    margin: var(--space-0);
     border: var(--border-checkbox) solid var(--color-primary);
     border-radius: var(--radius-sm);
     background-color: var(--color-accent-soft);
-    cursor: pointer;
-    transition:
-      background-color var(--duration-fast) var(--ease-out),
-      border-color var(--duration-fast) var(--ease-out),
-      box-shadow var(--duration-fast) var(--ease-out);
   }
 
-  /* Check glyph drawn as a CSS tick (no asset); revealed on :checked. */
-  .chart-table__checkbox::before {
-    content: '';
-    width: var(--space-2);
-    height: var(--space-4);
-    border: solid var(--color-primary-contrast);
-    border-width: var(--border-checkmark);
-    border-top: var(--space-0);
-    border-left: var(--space-0);
-    transform: rotate(40deg) translateY(calc(-1 * var(--space-px))) scale(0);
-    transform-origin: center;
-    transition: transform var(--duration-fast) var(--ease-out);
-  }
-
-  .chart-table__checkbox:hover {
-    border-color: var(--color-primary);
-  }
-
-  .chart-table__checkbox:checked {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-  }
-
-  .chart-table__checkbox:checked::before {
-    transform: rotate(40deg) translateY(calc(-1 * var(--space-px))) scale(1);
-  }
-
-  .chart-table__checkbox:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
-  }
-
-  /* ---- Reward variant: the tick box becomes a star you "earn" ----------- */
-  [data-ccg-variant='reward'] .chart-table__checkbox {
-    border-color: transparent;
+  /* ---- Reward variant: the box becomes an empty star to earn (sticker/draw) -- */
+  [data-ccg-variant='reward'] .chart-table__box {
+    border: 0;
     background-color: transparent;
-    border-radius: var(--radius-sm);
-  }
-  /* Replace the CSS-tick glyph with a star char (outline → filled on check). */
-  [data-ccg-variant='reward'] .chart-table__checkbox::before {
-    content: '★';
     width: auto;
     height: auto;
-    border: 0;
-    transform: scale(1);
+    line-height: 1;
     color: var(--color-border);
     font-size: var(--text-xl);
-    line-height: 1;
   }
-  [data-ccg-variant='reward'] .chart-table__checkbox:checked {
-    background-color: transparent;
-    border-color: transparent;
-  }
-  [data-ccg-variant='reward'] .chart-table__checkbox:checked::before {
-    color: var(--color-primary);
-    transform: scale(1);
-  }
-  [data-ccg-variant='reward'] .chart-table__checkbox:hover::before {
-    color: var(--color-primary-hover);
+  [data-ccg-variant='reward'] .chart-table__box::before {
+    content: '☆';
   }
 
   /* ---- Money variant: a $ value column + weekly total ------------------- */
@@ -1138,9 +1089,22 @@ const dayColumns = initialModel.columns.slice(1)
 
   .generator__actions {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-end;
+    gap: var(--space-2) var(--space-4);
     border-top: var(--border-width) solid var(--color-border);
     padding-top: var(--space-5);
+  }
+  .generator__print-tip {
+    margin: var(--space-0);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+
+  /* The print-only note is hidden on screen; print.css reveals it on paper. */
+  .print-note {
+    display: none;
   }
 
   /* ---- Visually-hidden utility (labels + live region) ------------------- */
