@@ -1,9 +1,30 @@
 ---
+import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { isPublished } from '../lib/publish-gate'
+import { isHubLive } from '../lib/hub'
 
 // Home hero. The brand wordmark lives in the global header (BaseLayout), so the
 // <h1> here is a value proposition, not a repeat of the logo. Top-loaded value +
 // one clear CTA (engagement research: front-load value, minimize the next-step cost).
+
+// Directory of every live page. Mirrors the same liveness rules as the [...slug]
+// route (age/guide go live on their publish_date; category hubs only once they
+// aggregate enough members via isHubLive). Listing them all here guarantees every
+// published page — now and every future one — has an inbound link the moment it
+// publishes, so no page is ever orphaned. Newest first.
+const all = await getCollection('pages')
+function firstSentence(text) {
+  const m = (text || '').match(/^.*?[.!?](\s|$)/)
+  return (m ? m[0] : text || '').trim()
+}
+const livePages = all
+  .filter((e) =>
+    e.data.type === 'category' ? isHubLive(all, e.id) : isPublished(e.data.publish_date)
+  )
+  .sort((a, b) => (b.data.publish_date ?? '').localeCompare(a.data.publish_date ?? ''))
+  .map((e) => ({ slug: e.id, title: e.data.h1, blurb: firstSentence(e.data.intro) }))
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -26,6 +47,18 @@ const jsonLd = {
       or save it as a PDF — in under a minute, with no account and no fuss.
     </p>
     <a class="hero__cta" href="/chore-chart-for-a-6-year-old/">Make a chore chart for a 6-year-old →</a>
+  </section>
+
+  <section class="directory">
+    <h2 class="directory__heading">All our free printables</h2>
+    <ul class="directory__list" role="list">
+      {livePages.map((p) => (
+        <li class="directory__item">
+          <a class="directory__link" href={`/${p.slug}/`}>{p.title}</a>
+          {p.blurb && <p class="directory__blurb">{p.blurb}</p>}
+        </li>
+      ))}
+    </ul>
   </section>
 </BaseLayout>
 
@@ -73,5 +106,52 @@ const jsonLd = {
   .hero__cta:focus-visible {
     outline: none;
     box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  }
+
+  /* Directory of every live page — simple list for now; grows into grouped
+     sections once the catalogue gets large. */
+  .directory {
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+    padding-block: var(--space-4) var(--space-8);
+    display: grid;
+    gap: var(--space-5);
+  }
+  .directory__heading {
+    margin-block: var(--space-0);
+  }
+  .directory__list {
+    list-style: none;
+    padding: var(--space-0);
+    margin: var(--space-0);
+    display: grid;
+    gap: var(--space-4);
+  }
+  .directory__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .directory__link {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+  }
+  .directory__blurb {
+    margin: var(--space-0);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+    line-height: var(--leading-normal);
+  }
+
+  @media (max-width: 30rem) {
+    .directory {
+      padding-inline: var(--space-3);
+    }
   }
 </style>
