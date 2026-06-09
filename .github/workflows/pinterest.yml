@@ -1,0 +1,61 @@
+name: Pinterest Pins
+
+# Manual trigger only for now. Enable the daily `schedule:` cron ONLY after:
+#   (1) the account has STANDARD API access (Trial pins are sandbox-only — no
+#       public reach), and
+#   (2) a write-scoped token (boards:write, pins:write) is saved as the
+#       PINTEREST_TOKEN repo secret (the trial "generate token" is read-only).
+# Then uncomment the schedule block below.
+on:
+  workflow_dispatch:
+    inputs:
+      max_pins:
+        description: 'Max pins to post this run'
+        required: false
+        default: '3'
+  # schedule:
+  #   - cron: '0 15 * * *'   # daily 15:00 UTC — enable post-Standard
+
+permissions:
+  contents: write   # to commit pinned.json
+
+concurrency:
+  group: pinterest
+  cancel-in-progress: false
+
+jobs:
+  post:
+    name: Post the next batch of pins
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site + pins (so /pins/<slug>.png exist for the API to fetch)
+        run: npm run build
+
+      - name: Post pins
+        env:
+          PINTEREST_TOKEN: ${{ secrets.PINTEREST_TOKEN }}
+          MAX_PINS_PER_RUN: ${{ github.event.inputs.max_pins || '3' }}
+        run: node scripts/pinterest/post-pins.mjs
+
+      - name: Commit pinned.json if changed
+        run: |
+          if ! git diff --quiet -- pinned.json; then
+            git config user.name "sproutchores-bot"
+            git config user.email "bot@sproutchores.com"
+            git add pinned.json
+            git commit -m "chore(pinterest): record posted pins [skip ci]"
+            git push
+          fi
