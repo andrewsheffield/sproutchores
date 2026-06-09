@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/make-pins.mjs",
     "preview": "astro preview",
     "shots": "bash scripts/shots.sh",
     "shots:watch": "bash scripts/shots-watch.sh",
