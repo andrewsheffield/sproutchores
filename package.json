@@ -19,6 +19,7 @@
     "web-vitals": "^5"
   },
   "devDependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "vitest": "^4.1.8"
   }
 }
