@@ -707,6 +707,15 @@ const dayColumns = initialModel.columns.slice(1)
     border-radius: var(--radius-md);
     /* Smooth, contained momentum scroll on touch. */
     -webkit-overflow-scrolling: touch;
+    /* CRITICAL: grid/flex children default to min-width:auto (won't shrink below
+       their content), so the wide table would widen every ancestor and scroll the
+       WHOLE PAGE. Letting these boxes shrink keeps the scroll INSIDE .chart-scroll. */
+    min-width: 0;
+  }
+  .generator,
+  .generator__controls,
+  .generator__preview {
+    min-width: 0;
   }
 
   .chart-table {
