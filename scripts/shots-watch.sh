@@ -59,11 +59,17 @@ while true; do
     rm -f "$REQ"
     echo "→ request ${tok}: rebuild + capture…"
     npm run build >/tmp/shots-build.log 2>&1 || true
-    cap  page-desktop "${URL}/chore-chart-for-a-6-year-old/" 1280 2400
-    cap  page-mobile  "${URL}/chore-chart-for-a-6-year-old/" 390 1500
-    cap  page-mobile-full "${URL}/chore-chart-for-a-6-year-old/" 390 2800
-    cap  home-desktop "${URL}/" 1280 1500
-    cap2 page-zoom    "${URL}/chore-chart-for-a-6-year-old/" 820 1500
+    if [[ "$tok" == /* ]]; then
+      # Token is a URL path → capture just that page (desktop + true-390 mobile).
+      cap custom-desktop "${URL}${tok}" 1280 2400
+      cap custom-mobile  "${URL}${tok}" 390 1700
+    else
+      cap  page-desktop "${URL}/chore-chart-for-a-6-year-old/" 1280 2400
+      cap  page-mobile  "${URL}/chore-chart-for-a-6-year-old/" 390 1500
+      cap  page-mobile-full "${URL}/chore-chart-for-a-6-year-old/" 390 2800
+      cap  home-desktop "${URL}/" 1280 1500
+      cap2 page-zoom    "${URL}/chore-chart-for-a-6-year-old/" 820 1500
+    fi
     printf '%s' "$tok" > "$DONE"
     echo "  ✓ request ${tok} done — PNGs in ${OUT}/"
   fi

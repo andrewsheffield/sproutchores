@@ -13,43 +13,60 @@
 import { chartForAge } from '../lib/generator-core'
 import { buildPrintableChartModel } from '../lib/printable-chart'
 import { choreIconSvg, iconSvg } from '../lib/chore-icons'
+import { GENERATOR_VARIANTS, type GeneratorVariant } from '../lib/generator-variants'
 
 export interface Props {
   /** Representative age the chart starts on. Clamped to the supported range. */
   age?: number
+  /** Generator mode: chore (default), money, routine, reward. */
+  variant?: GeneratorVariant
 }
 
 // Default age 6 keeps existing behaviour; pages pass their own age. The supported
 // dataset range is 2–17, so clamp to avoid an out-of-band initial render.
 const SUPPORTED_MIN = 2
 const SUPPORTED_MAX = 17
-const { age = 6 } = Astro.props
+const { age = 6, variant = 'chore' } = Astro.props
+const vc = GENERATOR_VARIANTS[variant]
 const initialAge = Math.min(SUPPORTED_MAX, Math.max(SUPPORTED_MIN, Math.round(age)))
 
-const initialModel = buildPrintableChartModel({ ...chartForAge(initialAge), childName: undefined })
-// Suggestions for the add-row datalist: the current age band's default chores.
-const initialSuggestions = chartForAge(initialAge).chores.map((c) => c.label)
+// Age-based variants (chore/money) draw rows from the dataset; fixed variants
+// (routine/reward) ship their own default rows.
+const initialItems = vc.ageBased ? chartForAge(initialAge).chores : vc.defaultItems!
+const initialBand = vc.ageBased ? chartForAge(initialAge).ageBand : ''
+const initialModel = buildPrintableChartModel({
+  ageBand: initialBand,
+  chores: initialItems,
+  childName: undefined,
+  titleNoun: vc.titleNoun,
+  showAges: vc.ageBased,
+  itemNoun: vc.itemNoun,
+})
+// Suggestions for the add-row datalist: the current default rows.
+const initialSuggestions = initialItems.map((c) => c.label)
 // Day columns + a trailing remove-action column. The remove header is visually
 // hidden (the per-row buttons carry their own labels) but keeps the grid square.
 const dayColumns = initialModel.columns.slice(1)
 ---
 
-<section class="generator" aria-label="Chore Chart Generator">
+<section class="generator" aria-label={`${vc.titleNoun} Generator`} data-ccg-variant={variant}>
   <div class="generator__controls">
 
-    <div class="control-row">
-      <label class="control-label" for="ccg-age">Child's age</label>
-      <input
-        class="control-input control-input--number"
-        id="ccg-age"
-        type="number"
-        min="2"
-        max="17"
-        value={initialAge}
-        aria-describedby="ccg-age-hint"
-      />
-      <span id="ccg-age-hint" class="control-hint">Ages 2–17 supported</span>
-    </div>
+    {vc.ageBased && (
+      <div class="control-row">
+        <label class="control-label" for="ccg-age">Child's age</label>
+        <input
+          class="control-input control-input--number"
+          id="ccg-age"
+          type="number"
+          min="2"
+          max="17"
+          value={initialAge}
+          aria-describedby="ccg-age-hint"
+        />
+        <span id="ccg-age-hint" class="control-hint">Ages 2–17 supported</span>
+      </div>
+    )}
 
     <div class="control-row">
       <label class="control-label" for="ccg-name">Child's name <span class="control-optional">(optional)</span></label>
@@ -87,7 +104,7 @@ const dayColumns = initialModel.columns.slice(1)
       <table class="chart-table" role="table" aria-label={initialModel.title}>
         <thead>
           <tr>
-            <th scope="col" class="chart-table__th chart-table__th--chore">Chore</th>
+            <th scope="col" class="chart-table__th chart-table__th--chore">{initialModel.columns[0]}</th>
             {dayColumns.map((col) => (
               <th scope="col" class="chart-table__th chart-table__th--day">{col}</th>
             ))}
@@ -140,7 +157,7 @@ const dayColumns = initialModel.columns.slice(1)
           class="chart-add__input"
           id="ccg-new-chore"
           type="text"
-          placeholder="Type a chore and press Enter…"
+          placeholder={vc.addPlaceholder}
           maxlength="60"
           autocomplete="off"
           list="ccg-chore-suggestions"
@@ -182,6 +199,7 @@ const dayColumns = initialModel.columns.slice(1)
   import { createMetrics, gaSend, EVENTS } from '../lib/metrics'
   import { getVariant } from '../lib/variant-config'
   import { choreIconSvg, iconSvg } from '../lib/chore-icons'
+  import { GENERATOR_VARIANTS, type GeneratorVariant } from '../lib/generator-variants'
 
   // ---- Metrics setup -------------------------------------------------------
   const metrics = createMetrics({
@@ -212,7 +230,7 @@ const dayColumns = initialModel.columns.slice(1)
   // The chart is the single editable surface: rows live in #ccg-chart-body
   // (rebuilt on chore/age changes); the add-row input + datalist are static so
   // focus survives rapid multi-add. The caption text node updates in place.
-  const ageInput    = document.getElementById('ccg-age')    as HTMLInputElement
+  const ageInput    = document.getElementById('ccg-age')    as HTMLInputElement | null
   const nameInput   = document.getElementById('ccg-name')   as HTMLInputElement
   const preview     = document.getElementById('ccg-preview')!
   const chartBody   = document.getElementById('ccg-chart-body')!
@@ -221,6 +239,12 @@ const dayColumns = initialModel.columns.slice(1)
   const printBtn    = document.getElementById('ccg-print-btn')!
   const liveRegion  = document.getElementById('ccg-live')!
   const suggestions = document.getElementById('ccg-chore-suggestions')!
+
+  // Generator variant (chore | money | routine | reward), read from the root
+  // data attribute so the island matches the SSR'd mode.
+  const root = document.querySelector('.generator') as HTMLElement | null
+  const variant = ((root?.dataset.ccgVariant as GeneratorVariant) || 'chore')
+  const vc = GENERATOR_VARIANTS[variant]
 
   // ---- State ---------------------------------------------------------------
   // `customChores` starts as null (= use band defaults). Once the user edits
@@ -238,12 +262,11 @@ const dayColumns = initialModel.columns.slice(1)
   // ---- Core helpers --------------------------------------------------------
   function getEffectiveChores(): ChoreItem[] {
     if (customChores !== null) return customChores
-    const { chores } = chartForAge(currentAge)
-    return chores
+    return vc.ageBased ? chartForAge(currentAge).chores : (vc.defaultItems as ChoreItem[])
   }
 
   function getEffectiveAgeBand(): string {
-    return chartForAge(currentAge).ageBand
+    return vc.ageBased ? chartForAge(currentAge).ageBand : ''
   }
 
   function currentTitle(): string {
@@ -252,6 +275,9 @@ const dayColumns = initialModel.columns.slice(1)
       ageBand: getEffectiveAgeBand(),
       chores: getEffectiveChores(),
       childName,
+      titleNoun: vc.titleNoun,
+      showAges: vc.ageBased,
+      itemNoun: vc.itemNoun,
     }).title
   }
 
@@ -291,7 +317,7 @@ const dayColumns = initialModel.columns.slice(1)
     const chores  = getEffectiveChores()
     const ageBand = getEffectiveAgeBand()
     const childName = nameInput.value.trim() || undefined
-    const model = buildPrintableChartModel({ ageBand, chores, childName })
+    const model = buildPrintableChartModel({ ageBand, chores, childName, titleNoun: vc.titleNoun, showAges: vc.ageBased, itemNoun: vc.itemNoun })
     const dayColumns = model.columns.slice(1)
 
     updateTitle(model.title)
@@ -379,7 +405,7 @@ const dayColumns = initialModel.columns.slice(1)
   // age change.
   function refreshSuggestions() {
     const present = new Set(getEffectiveChores().map((c) => c.label.trim().toLowerCase()))
-    const pool = chartForAge(currentAge).chores.map((c) => c.label)
+    const pool = (vc.ageBased ? chartForAge(currentAge).chores : (vc.defaultItems as ChoreItem[])).map((c) => c.label)
     suggestions.innerHTML = ''
     pool
       .filter((label) => !present.has(label.trim().toLowerCase()))
@@ -390,8 +416,8 @@ const dayColumns = initialModel.columns.slice(1)
       })
   }
 
-  // ---- Event: age change ---------------------------------------------------
-  ageInput.addEventListener('input', () => {
+  // ---- Event: age change (age-based variants only) -------------------------
+  ageInput?.addEventListener('input', () => {
     trackStart()
     const parsed = parseInt(ageInput.value, 10)
     if (!Number.isFinite(parsed)) return
@@ -455,7 +481,7 @@ const dayColumns = initialModel.columns.slice(1)
   // ---- Initial render ------------------------------------------------------
   // Seed currentAge from the SSR'd input value (each page sets its own age) so
   // hydration preserves the rendered age instead of snapping back to 6.
-  const seededAge = parseInt(ageInput.value, 10)
+  const seededAge = parseInt(ageInput?.value ?? '', 10)
   if (Number.isFinite(seededAge)) {
     currentAge = Math.min(AGE_MAX, Math.max(AGE_MIN, seededAge))
   }

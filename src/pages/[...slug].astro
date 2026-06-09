@@ -29,6 +29,12 @@ const { entry, all } = Astro.props
 const d = entry.data
 const isHub = d.type === 'category'
 
+// Generator: age pages use the default 'chore' variant; other pages may set a
+// generator_variant (money/routine/reward). Show it for any non-hub page that
+// either has an age (age-based) or declares a variant.
+const genVariant = d.generator_variant ?? 'chore'
+const showGenerator = !isHub && (typeof d.age === 'number' || d.generator_variant != null)
+
 // Dataset-driven chore list for the static (SEO / no-JS) render — age pages only.
 const band = d.type === 'age' && typeof d.age === 'number' ? bandForAge(d.age) : undefined
 
@@ -144,9 +150,9 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       <p class="page-intro">{d.intro}</p>
     </header>
 
-    {!isHub && typeof d.age === 'number' && (
+    {showGenerator && (
       <div class="generator-wrap">
-        <ChoreChartGenerator age={d.age} />
+        <ChoreChartGenerator age={d.age} variant={genVariant} />
       </div>
     )}
 
