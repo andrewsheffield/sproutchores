@@ -227,8 +227,10 @@ const dayColumns = initialModel.columns.slice(1)
   // the list it becomes the overridden set so changes survive name edits
   // (an age change resets it back to the new band's defaults).
   type ChoreItem = { id: string; label: string }
-  const AGE_MIN = 4
-  const AGE_MAX = 9
+  const AGE_MIN = 2
+  const AGE_MAX = 17
+  // Seeded from the SSR'd age input on init (below) so the island doesn't reset
+  // an age-N page back to 6 on hydration.
   let currentAge   = 6
   let customChores: ChoreItem[] | null = null
   let customChoreSeq = 0 // monotonic counter for collision-free custom ids
@@ -451,6 +453,12 @@ const dayColumns = initialModel.columns.slice(1)
   })
 
   // ---- Initial render ------------------------------------------------------
+  // Seed currentAge from the SSR'd input value (each page sets its own age) so
+  // hydration preserves the rendered age instead of snapping back to 6.
+  const seededAge = parseInt(ageInput.value, 10)
+  if (Number.isFinite(seededAge)) {
+    currentAge = Math.min(AGE_MAX, Math.max(AGE_MIN, seededAge))
+  }
   // Renders the default chart WITHOUT firing GENERATOR_COMPLETE (no interaction
   // yet): maybeTrackComplete() is guarded by startFired, which is still false.
   // renderChartBody() also builds the initial (exclusion-aware) datalist.
@@ -972,5 +980,41 @@ const dayColumns = initialModel.columns.slice(1)
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+  }
+
+  /* ---- Phone layout -----------------------------------------------------
+     A 7-day grid with comfortably-tappable boxes can't fully fit a phone, so
+     the chart still scrolls horizontally — but we reclaim the heavy nested
+     padding and narrow the chore column so most of the week is visible at once
+     (and the cut-off edge signals there's more to scroll). Checkboxes stay
+     full size. */
+  @media (max-width: 30rem) {
+    .generator {
+      padding: var(--space-4);
+      gap: var(--space-5);
+    }
+    .generator__controls {
+      padding: var(--space-4);
+    }
+    .generator__preview {
+      padding: var(--space-3);
+    }
+    /* Tighten the chore column + day gutters (NOT the checkbox) so all 7 days
+       fit a phone without horizontal scroll. */
+    .chart-table {
+      --chart-chore-col: 6.5rem;
+      --chart-day-col: 2rem;
+      --chart-min-width: 0; /* size to content instead of forcing 36rem */
+      font-size: var(--text-xs);
+    }
+    .chart-table__th {
+      padding: var(--space-2) var(--space-1);
+    }
+    .chart-table__chore {
+      padding: var(--space-2);
+    }
+    .chart-title {
+      font-size: var(--text-lg);
+    }
   }
 </style>

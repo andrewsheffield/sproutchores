@@ -255,6 +255,14 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     gap: var(--space-8);
   }
 
+  /* Phone: tighter side gutters so the generator + content get more width. */
+  @media (max-width: 30rem) {
+    .page-wrapper {
+      padding-inline: var(--space-3);
+      gap: var(--space-6);
+    }
+  }
+
   .page-header {
     display: grid;
     gap: var(--space-3);
