@@ -105,6 +105,7 @@ const dayColumns = initialModel.columns.slice(1)
         <thead>
           <tr>
             <th scope="col" class="chart-table__th chart-table__th--chore">{initialModel.columns[0]}</th>
+            {vc.money && <th scope="col" class="chart-table__th chart-table__th--money">Value</th>}
             {dayColumns.map((col) => (
               <th scope="col" class="chart-table__th chart-table__th--day">{col}</th>
             ))}
@@ -122,6 +123,19 @@ const dayColumns = initialModel.columns.slice(1)
                   <span class="chart-table__chore-label">{row.chore}</span>
                 </div>
               </td>
+              {vc.money && (
+                <td class="chart-table__money-cell">
+                  <span class="chart-table__money-prefix" aria-hidden="true">$</span>
+                  <input
+                    type="number"
+                    class="chart-table__money-input"
+                    min="0"
+                    step="0.25"
+                    value="1"
+                    aria-label={`Dollar value for ${row.chore}`}
+                  />
+                </td>
+              )}
               {dayColumns.map((day) => (
                 <td class="chart-table__check-cell">
                   <input
@@ -143,6 +157,18 @@ const dayColumns = initialModel.columns.slice(1)
             </tr>
           ))}
         </tbody>
+        {vc.money && (
+          <tfoot>
+            <tr class="chart-table__total-row">
+              <td class="chart-table__total-label">Weekly total</td>
+              <td class="chart-table__money-cell">
+                <span class="chart-table__money-prefix" aria-hidden="true">$</span>
+                <span id="ccg-money-total">0.00</span>
+              </td>
+              <td colspan={dayColumns.length + 1}></td>
+            </tr>
+          </tfoot>
+        )}
       </table>
     </div>
 
@@ -327,7 +353,7 @@ const dayColumns = initialModel.columns.slice(1)
     if (model.rows.length === 0) {
       const emptyRow = document.createElement('tr')
       const emptyCell = document.createElement('td')
-      emptyCell.colSpan = dayColumns.length + 2 // chore + days + action
+      emptyCell.colSpan = dayColumns.length + 2 + (vc.money ? 1 : 0) // chore (+money) + days + action
       emptyCell.className = 'chart-table__empty'
       emptyCell.textContent = 'No chores yet — add one below.'
       emptyRow.appendChild(emptyCell)
@@ -352,6 +378,27 @@ const dayColumns = initialModel.columns.slice(1)
         choreInner.appendChild(choreLabel)
         choreCell.appendChild(choreInner)
         tr.appendChild(choreCell)
+
+        // Money variant: an editable $ value cell after the chore label.
+        if (vc.money) {
+          const moneyCell = document.createElement('td')
+          moneyCell.className = 'chart-table__money-cell'
+          const prefix = document.createElement('span')
+          prefix.className = 'chart-table__money-prefix'
+          prefix.setAttribute('aria-hidden', 'true')
+          prefix.textContent = '$'
+          const amount = document.createElement('input')
+          amount.type = 'number'
+          amount.className = 'chart-table__money-input'
+          amount.min = '0'
+          amount.step = '0.25'
+          amount.value = '1'
+          amount.setAttribute('aria-label', `Dollar value for ${row.chore}`)
+          amount.addEventListener('input', recomputeMoneyTotal)
+          moneyCell.appendChild(prefix)
+          moneyCell.appendChild(amount)
+          tr.appendChild(moneyCell)
+        }
 
         // Day checkbox cells (one per day column).
         dayColumns.forEach((day) => {
@@ -385,7 +432,23 @@ const dayColumns = initialModel.columns.slice(1)
     // Keep suggestions in sync: only offer chores not already on the chart.
     refreshSuggestions()
 
+    // Money variant: refresh the weekly total to match the rebuilt rows.
+    recomputeMoneyTotal()
+
     maybeTrackComplete(chores.length)
+  }
+
+  // Sum the per-row money inputs into the weekly total (money variant only).
+  function recomputeMoneyTotal() {
+    if (!vc.money) return
+    const totalEl = document.getElementById('ccg-money-total')
+    if (!totalEl) return
+    let total = 0
+    chartBody.querySelectorAll<HTMLInputElement>('.chart-table__money-input').forEach((i) => {
+      const v = parseFloat(i.value)
+      if (Number.isFinite(v) && v > 0) total += v
+    })
+    totalEl.textContent = total.toFixed(2)
   }
 
   // ---- Render: title-only update (name changes) ----------------------------
@@ -803,6 +866,76 @@ const dayColumns = initialModel.columns.slice(1)
   .chart-table__checkbox:focus-visible {
     outline: none;
     box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  }
+
+  /* ---- Reward variant: the tick box becomes a star you "earn" ----------- */
+  [data-ccg-variant='reward'] .chart-table__checkbox {
+    border-color: transparent;
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+  }
+  /* Replace the CSS-tick glyph with a star char (outline → filled on check). */
+  [data-ccg-variant='reward'] .chart-table__checkbox::before {
+    content: '★';
+    width: auto;
+    height: auto;
+    border: 0;
+    transform: scale(1);
+    color: var(--color-border);
+    font-size: var(--text-xl);
+    line-height: 1;
+  }
+  [data-ccg-variant='reward'] .chart-table__checkbox:checked {
+    background-color: transparent;
+    border-color: transparent;
+  }
+  [data-ccg-variant='reward'] .chart-table__checkbox:checked::before {
+    color: var(--color-primary);
+    transform: scale(1);
+  }
+  [data-ccg-variant='reward'] .chart-table__checkbox:hover::before {
+    color: var(--color-primary-hover);
+  }
+
+  /* ---- Money variant: a $ value column + weekly total ------------------- */
+  .chart-table__th--money {
+    text-align: left;
+    padding-left: var(--space-3);
+    width: 5.5rem;
+    min-width: 5.5rem;
+  }
+  .chart-table__money-cell {
+    padding: var(--space-2) var(--space-3);
+    white-space: nowrap;
+    color: var(--color-text);
+  }
+  .chart-table__money-prefix {
+    color: var(--color-muted);
+    margin-right: var(--space-1);
+  }
+  .chart-table__money-input {
+    width: 3.5rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-2);
+    font: inherit;
+    text-align: right;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+  }
+  .chart-table__money-input:focus-visible {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  }
+  .chart-table__total-row td {
+    border-top: var(--border-width) solid var(--color-border);
+    padding: var(--space-3);
+    font-weight: var(--weight-bold);
+  }
+  .chart-table__total-label {
+    text-align: right;
+    color: var(--color-text);
   }
 
   /* ---- Per-row remove button -------------------------------------------- */
