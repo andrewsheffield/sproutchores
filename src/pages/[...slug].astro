@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import ChoreChartGenerator from '../components/ChoreChartGenerator.astro'
 import Breadcrumbs from '../components/Breadcrumbs.astro'
+import EmbedChart from '../components/EmbedChart.astro'
 import { bandForAge } from '../data/chores-by-age'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
@@ -242,6 +243,10 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
           ))}
         </ul>
       </section>
+    )}
+
+    {!isHub && (
+      <EmbedChart slug={entry.id} h1={d.h1} />
     )}
 
   </div>

@@ -1,0 +1,37 @@
+---
+// site/src/components/EmbedChart.astro
+// "Use this free chart on your site" box: paste-ready embed HTML + copy button.
+// Earns natural dofollow links via a BRANDED anchor. Hidden in print.
+import { embedSnippet } from '../lib/embed'
+interface Props { slug: string; h1: string }
+const { slug, h1 } = Astro.props
+const site = Astro.site?.href.replace(/\/+$/, '') ?? 'https://sproutchores.com'
+const snippet = embedSnippet({ slug, h1, site })
+---
+<section class="embed-box" aria-labelledby="embed-heading">
+  <h2 id="embed-heading" class="embed-box__title">📋 Use this free chart on your site</h2>
+  <p class="embed-box__lede">Running a blog or classroom page? Copy this to embed the chart with a link back — no permission needed.</p>
+  <textarea class="embed-box__code" readonly rows="4" aria-label="Embed HTML">{snippet}</textarea>
+  <button type="button" class="embed-box__btn" data-embed-copy>Copy embed code</button>
+</section>
+<script is:inline>
+  (function () {
+    var b = document.querySelector('[data-embed-copy]')
+    if (!b) return
+    b.addEventListener('click', function () {
+      var ta = document.querySelector('.embed-box__code')
+      if (!ta) return
+      ta.select()
+      try { navigator.clipboard.writeText(ta.value) } catch (e) { document.execCommand('copy') }
+      var t = b.textContent; b.textContent = 'Copied!'
+      setTimeout(function () { b.textContent = t }, 1500)
+    })
+  })()
+</script>
+<style>
+  .embed-box { max-width: var(--measure); display: grid; gap: var(--space-3); padding: var(--space-5); background: var(--color-surface-sunken); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); }
+  .embed-box__title { font-size: var(--text-lg); margin-block: var(--space-0); }
+  .embed-box__lede { margin: var(--space-0); color: var(--color-muted); font-size: var(--text-sm); line-height: var(--leading-normal); }
+  .embed-box__code { width: 100%; font-family: var(--font-mono, monospace); font-size: var(--text-sm); padding: var(--space-3); border-radius: var(--radius-sm); border: var(--border-width) solid var(--color-border); resize: vertical; background: var(--color-surface); color: var(--color-text); }
+  .embed-box__btn { justify-self: start; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-primary-contrast); font-weight: var(--weight-medium); border: none; cursor: pointer; }
+</style>
