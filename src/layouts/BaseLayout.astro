@@ -61,6 +61,22 @@ const jsonLdSafe = hasValidJsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003
 // GA4 is inert unless a measurement ID is configured at build time.
 const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
 
+// gtag bootstrap + Consent Mode v2 (default DENIED; honor a stored 'granted').
+// Built as a string and emitted via set:html so the literal JS (braces, etc.) is
+// written verbatim — NOT parsed as Astro/JSX, and NOT trapped in a dead template
+// literal the way `define:vars` children would be.
+const gaInit = ga4Id
+  ? [
+      'window.dataLayer = window.dataLayer || [];',
+      'function gtag(){window.dataLayer.push(arguments);}',
+      'window.gtag = gtag;',
+      "gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});",
+      "try{if(localStorage.getItem('sc_consent')==='granted')gtag('consent','update',{analytics_storage:'granted'});}catch(e){}",
+      'gtag("js", new Date());',
+      `gtag('config', ${JSON.stringify(ga4Id)});`,
+    ].join('\n')
+  : ''
+
 // Active-nav detection: normalise the current path (strip trailing slash, treat
 // empty as "/") so "/chores-for-a-6-year-old" and ".../" both match their link.
 const normalisePath = (p: string) => {
@@ -122,24 +138,7 @@ const isActive = (href: string) => normalisePath(href) === currentPath
         src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`}
       />
     )}
-    {ga4Id && (
-      <script is:inline define:vars={{ ga4Id }}>
-        {`window.dataLayer = window.dataLayer || [];
-        function gtag(){window.dataLayer.push(arguments);}
-        window.gtag = gtag;
-        // Consent Mode v2: default everything DENIED — GA4 sets no cookies until
-        // the visitor accepts in the consent banner. Honor a prior 'granted' choice.
-        gtag('consent', 'default', {
-          analytics_storage: 'denied',
-          ad_storage: 'denied',
-          ad_user_data: 'denied',
-          ad_personalization: 'denied',
-        });
-        try { if (localStorage.getItem('sc_consent') === 'granted') gtag('consent','update',{ analytics_storage: 'granted' }); } catch (e) {}
-        gtag('js', new Date());
-        gtag('config', ga4Id);`}
-      </script>
-    )}
+    {ga4Id && <script is:inline set:html={gaInit} />}
   </head>
 
   <body>
