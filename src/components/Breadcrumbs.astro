@@ -1,14 +1,16 @@
 ---
 // Breadcrumbs: Home › {Category} › {Page} + BreadcrumbList JSON-LD.
-// The category segment links to its hub route when one exists; otherwise it
-// renders as plain text (no broken link). Tokens-only.
+// The category crumb appears ONLY when its hub is live (has a real URL). A
+// suppressed hub is dropped from BOTH the visible trail and the JSON-LD — an
+// intermediate BreadcrumbList item with no `item` URL is invalid structured data
+// (Google: every breadcrumb except the last must resolve to a URL). Tokens-only.
 import { categoryMeta } from '../data/categories'
 
 export interface Props {
   /** Category id from the entry (may be null). */
   category?: string | null
-  /** Whether the category hub is live (published + enough members). Off = render
-   *  the category as plain text, never a broken link. */
+  /** Whether the category hub is live (published + enough members). Off = the
+   *  category crumb is omitted entirely (never a broken/URL-less crumb). */
   categoryLive?: boolean
   /** Current page title (the leaf crumb). */
   title: string
@@ -20,10 +22,11 @@ const cat = categoryMeta(category)
 const site = Astro.site?.href.replace(/\/$/, '') ?? ''
 const catHref = categoryLive && cat?.hubSlug ? `/${cat.hubSlug}/` : undefined
 
-// Visible trail. The leaf (current page) is never a link.
+// Visible trail. The category is included only when it resolves to a live URL; the
+// leaf (current page) is never a link.
 const trail: Array<{ label: string; href?: string }> = [
   { label: 'Home', href: '/' },
-  ...(cat ? [{ label: cat.label, href: catHref }] : []),
+  ...(cat && catHref ? [{ label: cat.label, href: catHref }] : []),
   { label: title },
 ]
 
