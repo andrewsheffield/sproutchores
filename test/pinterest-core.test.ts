@@ -29,6 +29,11 @@ describe('pinterest-core copy + boards', () => {
     expect(t.slice(0, 40).toLowerCase()).toContain('chore chart')
     expect(t).toContain('Free Printable')
   })
+  it('pinTitle does not duplicate the tag when the H1 already says "printable"', () => {
+    const t = pinTitle({ h1: 'Chore Chart for a 4-Year-Old (Age-Appropriate List + Free Printable)' })
+    expect(t).toBe('Chore Chart for a 4-Year-Old (Age-Appropriate List + Free Printable)')
+    expect((t.match(/printable/gi) || []).length).toBe(1)
+  })
   it('pinDescription is non-empty and <=800 chars', () => {
     const d = pinDescription(page)
     expect(d.length).toBeGreaterThan(0)

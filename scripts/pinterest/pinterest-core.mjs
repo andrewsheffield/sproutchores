@@ -41,10 +41,12 @@ export function boardForPage(page) {
 }
 
 // Pin title: the page H1 (already keyword-first), plus a "Free Printable" tag if
-// it fits. <=100 chars; the keyword stays in the first ~40 (good-for-pinterest).
+// it fits AND the H1 doesn't already say "printable" (avoid "...Free Printable —
+// Free Printable"). <=100 chars; the keyword stays in the first ~40 (good-for-pinterest).
 export function pinTitle(page) {
   const base = ((page && page.h1) || '').trim()
   if (!base) return ''
+  if (/printable/i.test(base)) return base.slice(0, 100)
   const tagged = `${base} — Free Printable`
   return (tagged.length <= 100 ? tagged : base).slice(0, 100)
 }
