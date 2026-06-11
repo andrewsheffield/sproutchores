@@ -65,8 +65,14 @@ const ga4Id = import.meta.env.PUBLIC_GA4_ID as string | undefined
 // Built as a string and emitted via set:html so the literal JS (braces, etc.) is
 // written verbatim — NOT parsed as Astro/JSX, and NOT trapped in a dead template
 // literal the way `define:vars` children would be.
+// Owner self-exclusion: visiting `?sc_notrack=1` flags this device (any network/IP)
+// to send NO analytics; `?sc_notrack=0` clears it. Wrapped in an IIFE so the flag
+// check can early-return before any hit is sent.
 const gaInit = ga4Id
   ? [
+      '(function(){',
+      'try{var _u=new URL(location.href);if(_u.searchParams.has("sc_notrack")){var _v=_u.searchParams.get("sc_notrack");if(_v==="0"||_v==="false"){localStorage.removeItem("sc_notrack")}else{localStorage.setItem("sc_notrack","1")}}}catch(e){}',
+      'try{if(localStorage.getItem("sc_notrack")==="1")return}catch(e){}',
       'window.dataLayer = window.dataLayer || [];',
       'function gtag(){window.dataLayer.push(arguments);}',
       'window.gtag = gtag;',
@@ -74,6 +80,7 @@ const gaInit = ga4Id
       "try{if(localStorage.getItem('sc_consent')==='granted')gtag('consent','update',{analytics_storage:'granted'});}catch(e){}",
       'gtag("js", new Date());',
       `gtag('config', ${JSON.stringify(ga4Id)});`,
+      '})();',
     ].join('\n')
   : ''
 
@@ -273,9 +280,14 @@ const isActive = (href: string) => normalisePath(href) === currentPath
         })
       }
 
-      onLCP(report('LCP'))
-      onINP(report('INP'))
-      onCLS(report('CLS'))
+      // Honor the owner self-exclusion flag (?sc_notrack=1) — skip web-vitals too.
+      let _notrack = false
+      try { _notrack = localStorage.getItem('sc_notrack') === '1' } catch (e) {}
+      if (!_notrack) {
+        onLCP(report('LCP'))
+        onINP(report('INP'))
+        onCLS(report('CLS'))
+      }
     </script>
 
     <style>
