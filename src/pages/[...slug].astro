@@ -77,7 +77,9 @@ function renderBlocks(body) {
 const site = Astro.site?.href.replace(/\/$/, '') ?? ''
 const pageUrl = `${site}/${entry.id}/`
 
-// --- JSON-LD: Article (carries author E-E-A-T) + HowTo (tool rich result). ---
+// --- JSON-LD: Article (carries author E-E-A-T) + FAQPage. ---
+// (HowTo removed 2026-06-11: Google deprecated HowTo rich results in 2023, so the
+// markup produced no rich result — dead weight. FAQ kept: valid + adds semantic context.)
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -87,20 +89,6 @@ const articleJsonLd = {
   publisher: { '@type': 'Organization', name: 'SproutChores' },
   datePublished: d.publish_date,
   mainEntityOfPage: pageUrl,
-}
-
-const howToJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'HowTo',
-  name: `How to make a ${d.target_keyword}`,
-  description: d.meta_description,
-  step: [
-    { '@type': 'HowToStep', name: 'Pick age-appropriate chores', text: 'Choose tasks your child can complete independently; the generator pre-loads a sensible list you can edit.' },
-    { '@type': 'HowToStep', name: "Enter your child's name", text: "Type your child's name in the generator above to personalise the chart title." },
-    { '@type': 'HowToStep', name: 'Customise the chore list', text: 'Add or remove chores until the chart matches your household routine.' },
-    { '@type': 'HowToStep', name: 'Print or save as PDF', text: 'Click “Print / Save as PDF” to get a clean, printer-ready chart with a box to tick for each day of the week.' },
-  ],
-  tool: [{ '@type': 'HowToTool', name: 'SproutChores printable chore-chart generator' }],
 }
 
 const faqJsonLd = d.faq.length
@@ -115,7 +103,6 @@ const faqJsonLd = d.faq.length
     }
   : undefined
 
-const howToSafe = JSON.stringify(howToJsonLd).replace(/</g, '\\u003c')
 const faqSafe = faqJsonLd ? JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') : ''
 
 // Hub: CollectionPage + ItemList of the member pages (helps Google understand the
@@ -251,7 +238,6 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
 
   </div>
 
-  {!isHub && <script type="application/ld+json" set:html={howToSafe} />}
   {faqJsonLd && <script type="application/ld+json" set:html={faqSafe} />}
   {collectionJsonLd && <script type="application/ld+json" set:html={collectionSafe} />}
 </BaseLayout>
