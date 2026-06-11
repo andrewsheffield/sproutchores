@@ -4,6 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 import ChoreChartGenerator from '../components/ChoreChartGenerator.astro'
 import Breadcrumbs from '../components/Breadcrumbs.astro'
 import EmbedChart from '../components/EmbedChart.astro'
+import TableOfContents from '../components/TableOfContents.astro'
 import { bandForAge } from '../data/chores-by-age'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
@@ -60,6 +61,23 @@ const related = (d.related ?? [])
   .map((slug) => byId.get(slug))
   .filter((e) => e && isPublished(e.data.publish_date))
   .map((e) => ({ slug: e.id, title: e.data.h1 }))
+
+// Resilient cross-linking: top up with other LIVE pages so every live page links
+// to live neighbors NOW — even before its curated cluster siblings publish (and
+// fixes pages with an empty `related`). Newest first; hubs excluded; cap ~3.
+const relatedSlugs = new Set(related.map((r) => r.slug))
+const liveOthers = all
+  .filter((e) => e.id !== entry.id && e.data.type !== 'category' && !relatedSlugs.has(e.id) && isPublished(e.data.publish_date))
+  .sort((a, b) => (b.data.publish_date ?? '').localeCompare(a.data.publish_date ?? ''))
+  .map((e) => ({ slug: e.id, title: e.data.h1 }))
+const relatedShown = [...related, ...liveOthers].slice(0, 3)
+
+// Table-of-contents jump links: the prose sections + FAQ (shown when ≥3 — handled
+// in the component). IDs match the headings rendered below.
+const tocItems = [
+  ...d.sections.map((s, i) => ({ id: `section-${i}`, label: s.heading })),
+  ...(d.faq.length ? [{ id: 'faq-heading', label: 'Frequently asked questions' }] : []),
+]
 
 // Split a section body into renderable blocks: a block whose lines all start
 // with "- " becomes a <ul>; everything else is a paragraph. Lets generated
@@ -189,6 +207,8 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       </section>
     )}
 
+    {!isHub && <TableOfContents items={tocItems} />}
+
     {d.sections.map((section, i) => (
       <section class="content-section" aria-labelledby={`section-${i}`}>
         <h2 id={`section-${i}`}>{section.heading}</h2>
@@ -221,11 +241,11 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       {author.bioParagraphs.map((p) => <p class="author-card__bio">{p}</p>)}
     </section>
 
-    {related.length > 0 && (
+    {!isHub && relatedShown.length > 0 && (
       <section class="content-section" aria-labelledby="related-heading">
-        <h2 id="related-heading">More chore charts</h2>
+        <h2 id="related-heading">More free printables</h2>
         <ul class="related-list" role="list">
-          {related.map((r) => (
+          {relatedShown.map((r) => (
             <li><a href={`/${r.slug}/`}>{r.title}</a></li>
           ))}
         </ul>

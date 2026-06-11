@@ -1,0 +1,56 @@
+---
+// On-page jump links to the main content sections. Improves scannability
+// (engagement research) and can earn "jump to" sitelinks in search. Renders only
+// when there are enough sections to be worth it. Hidden in print.
+interface Props {
+  items: { id: string; label: string }[]
+}
+const { items } = Astro.props
+const show = items.length >= 3
+---
+{show && (
+  <nav class="toc" aria-label="On this page">
+    <p class="toc__title">On this page</p>
+    <ul class="toc__list" role="list">
+      {items.map((it) => (
+        <li class="toc__item"><a class="toc__link" href={`#${it.id}`}>{it.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc {
+    max-width: var(--measure);
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-surface-sunken);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .toc__title {
+    margin: var(--space-0);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .toc__list {
+    list-style: none;
+    margin: var(--space-0);
+    padding: var(--space-0);
+    display: grid;
+    gap: var(--space-1);
+  }
+  .toc__link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: var(--text-base);
+  }
+  .toc__link:hover {
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+</style>

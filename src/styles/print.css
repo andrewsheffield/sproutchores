@@ -215,6 +215,9 @@
   /* The on-screen embed-code box is a web affordance — never print it. */
   .embed-box { display: none !important; }
 
+  /* On-page jump links are useless on paper. */
+  .toc { display: none !important; }
+
   /* A warm, useful note in place of the chrome — shown ONLY on paper. */
   .print-note {
     display: block !important;
