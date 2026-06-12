@@ -65,7 +65,10 @@ const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
     var formState = el.querySelector('.signup__state--form')
     var successState = el.querySelector('.signup__state--success')
     var errorEl = el.querySelector('.signup__error')
-    var btn = el.querySelector('.signup__btn')
+    // Query the submit button explicitly — the success state also has a .signup__btn
+    // (the download link), so a bare .signup__btn lookup would be order-dependent.
+    var btn = el.querySelector('button[type="submit"]')
+    var btnLabel = btn ? btn.textContent : ''
     if (!form) return
     form.addEventListener('submit', function (e) {
       e.preventDefault()
@@ -74,6 +77,8 @@ const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
       var email = input && input.value ? input.value.trim() : ''
       if (!email) return
       if (btn) { btn.disabled = true; btn.textContent = 'Sending…' }
+      // ml-submit + anticsrf are also hidden inputs on the native <form> (the no-JS
+      // fallback); the fetch path rebuilds the body, so both copies must stay in sync.
       var body = new URLSearchParams()
       body.set('fields[email]', email)
       body.set('ml-submit', '1')
@@ -86,11 +91,16 @@ const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
         .then(function (r) {
           if (!r.ok) throw new Error('bad status ' + r.status)
           if (formState) formState.hidden = true
-          if (successState) successState.hidden = false
+          if (successState) {
+            successState.hidden = false
+            // Move focus to the download link so keyboard/SR users land on the next action.
+            var dl = successState.querySelector('a')
+            if (dl) dl.focus()
+          }
           try { if (window.gtag) window.gtag('event', 'email_signup') } catch (err) {}
         })
         .catch(function () {
-          if (btn) { btn.disabled = false; btn.textContent = 'Get the pack' }
+          if (btn) { btn.disabled = false; btn.textContent = btnLabel }
           if (errorEl) errorEl.hidden = false
         })
     })
