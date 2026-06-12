@@ -58,6 +58,11 @@ function drawChart(page: PDFPage, chart: PrintableChart, font: PDFFont, bold: PD
     y -= rowH
     page.drawLine({ start: { x: tableLeft, y }, end: { x: tableRight, y }, thickness: 1, color: BORDER })
     page.drawText(row.chore, { x: tableLeft + 10, y: y + rowH / 2 - 5, size: 11, font, color: INK })
+    // pdf-lib drawText neither wraps nor truncates — warn at build time if a label
+    // would overflow the chore column (e.g. data changed or a new band was added).
+    if (font.widthOfTextAtSize(row.chore, 11) > choreColW - 20) {
+      console.warn(`make-bundle: chore label may overflow the column: "${row.chore}"`)
+    }
     for (let c = 1; c < cols.length; c++) {
       const x = tableLeft + choreColW + (c - 1) * dayColW
       const box = 14
