@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
+import EmailSignup from '../components/EmailSignup.astro'
 
 // Home hero. The brand wordmark lives in the global header (BaseLayout), so the
 // <h1> here is a value proposition, not a repeat of the logo. Top-loaded value +
@@ -60,6 +61,8 @@ const jsonLd = {
       ))}
     </ul>
   </section>
+
+  <EmailSignup />
 </BaseLayout>
 
 <style>
