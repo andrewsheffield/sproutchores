@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/make-pins.mjs",
+    "build": "astro build && node scripts/make-pins.mjs && node --import tsx/esm scripts/make-bundle.ts",
     "preview": "astro preview",
     "shots": "bash scripts/shots.sh",
     "shots:watch": "bash scripts/shots-watch.sh",
@@ -20,6 +20,8 @@
   },
   "devDependencies": {
     "@resvg/resvg-wasm": "^2.6.2",
+    "pdf-lib": "^1.17.1",
+    "tsx": "^4.22.4",
     "vitest": "^4.1.8"
   }
 }
