@@ -12,6 +12,7 @@ describe('bundleChartModels', () => {
 
   it('starts with age-banded chore charts (first = ages 4-5)', () => {
     expect(charts[0].title).toContain('Chore Chart')
+    // age 4 resolves to the '4-5' band — asserts BUNDLE_AGES[0] maps to the youngest pack band.
     expect(charts[0].title).toContain('ages 4-5')
     expect(charts[0].columns[0]).toBe('Chore')
     // 8 columns: the item column + 7 weekday columns.
