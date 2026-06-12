@@ -1,0 +1,168 @@
+---
+// site/src/components/EmailSignup.astro
+// Opt-in email capture — offers the free "Age-by-Age Chore Chart Pack" bundle plus
+// future "new printables" broadcasts. NEVER a gate: the charts are free regardless.
+// A custom, on-brand <form> that fetch()-POSTs straight to MailerLite's subscribe
+// endpoint (CORS-enabled) — no MailerLite JS, no API key in the browser. Renders
+// NOTHING unless the public IDs are configured (mirrors the GA4 gate). Print-hidden.
+import { isMailerLiteConfigured, subscribeEndpoint } from '../lib/mailerlite'
+
+const account = import.meta.env.PUBLIC_MAILERLITE_ACCOUNT as string | undefined
+const form = import.meta.env.PUBLIC_MAILERLITE_FORM as string | undefined
+const configured = isMailerLiteConfigured(account, form)
+const endpoint = configured ? subscribeEndpoint(account!, form!) : ''
+// The bundle PDF is generated into /downloads at build time (scripts/make-bundle.ts).
+const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
+---
+
+{configured && (
+  <section class="signup" aria-labelledby="signup-heading" data-endpoint={endpoint}>
+    <div class="signup__state signup__state--form">
+      <h2 id="signup-heading" class="signup__title">Get the free Age-by-Age Chore Chart Pack</h2>
+      <p class="signup__lede">
+        Six printable charts (ages 4–10) plus reward and routine sheets, in one tidy PDF.
+        We'll also send new printables and the occasional real parenting tip. The charts on
+        this site are always free — no sign-up needed.
+      </p>
+      <form class="signup__form" action={endpoint} method="post">
+        <label class="signup__sr-only" for="signup-email">Your email address</label>
+        <input
+          class="signup__input"
+          id="signup-email"
+          type="email"
+          name="fields[email]"
+          placeholder="you@email.com"
+          autocomplete="email"
+          required
+        />
+        <input type="hidden" name="ml-submit" value="1" />
+        <input type="hidden" name="anticsrf" value="true" />
+        <button class="signup__btn" type="submit">Get the pack</button>
+      </form>
+      <p class="signup__fine">
+        We email you new printables now and then — unsubscribe anytime. <a href="/privacy/">Privacy</a>.
+      </p>
+      <p class="signup__error" role="alert" hidden>Something went wrong — please try again in a moment.</p>
+    </div>
+
+    <div class="signup__state signup__state--success" hidden>
+      <h2 class="signup__title">✓ You're in — download your pack below</h2>
+      <p class="signup__lede">
+        We've also emailed you a confirmation link — click it to start getting new printables now and then.
+      </p>
+      <a class="signup__btn signup__btn--download" href={BUNDLE_URL} download>
+        Download the Age-by-Age Chore Chart Pack →
+      </a>
+    </div>
+  </section>
+)}
+
+<script is:inline>
+  (function () {
+    var el = document.querySelector('.signup[data-endpoint]')
+    if (!el) return
+    var form = el.querySelector('.signup__form')
+    var formState = el.querySelector('.signup__state--form')
+    var successState = el.querySelector('.signup__state--success')
+    var errorEl = el.querySelector('.signup__error')
+    var btn = el.querySelector('.signup__btn')
+    if (!form) return
+    form.addEventListener('submit', function (e) {
+      e.preventDefault()
+      if (errorEl) errorEl.hidden = true
+      var input = form.querySelector('input[type="email"]')
+      var email = input && input.value ? input.value.trim() : ''
+      if (!email) return
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…' }
+      var body = new URLSearchParams()
+      body.set('fields[email]', email)
+      body.set('ml-submit', '1')
+      body.set('anticsrf', 'true')
+      fetch(el.getAttribute('data-endpoint'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('bad status ' + r.status)
+          if (formState) formState.hidden = true
+          if (successState) successState.hidden = false
+          try { if (window.gtag) window.gtag('event', 'email_signup') } catch (err) {}
+        })
+        .catch(function () {
+          if (btn) { btn.disabled = false; btn.textContent = 'Get the pack' }
+          if (errorEl) errorEl.hidden = false
+        })
+    })
+  })()
+</script>
+
+<style>
+  .signup {
+    max-width: var(--measure);
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: var(--color-primary-soft);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .signup__state { display: grid; gap: var(--space-3); }
+  /* [hidden] must win over the grid display the class sets. */
+  .signup__state[hidden] { display: none; }
+  .signup__title { font-size: var(--text-xl); margin-block: var(--space-0); }
+  .signup__lede {
+    margin: var(--space-0);
+    color: var(--color-text);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+  .signup__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .signup__input {
+    flex: 1 1 14rem;
+    min-width: 0;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .signup__input::placeholder { color: var(--color-muted); }
+  .signup__input:focus-visible {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+  }
+  .signup__btn {
+    flex: 0 0 auto;
+    padding: var(--space-3) var(--space-5);
+    border: var(--border-width) solid var(--color-primary);
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-primary-contrast);
+    font-family: var(--font-sans);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-base);
+    cursor: pointer;
+  }
+  .signup__btn:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+  .signup__btn:disabled { opacity: 0.7; cursor: default; }
+  .signup__btn--download { display: inline-flex; align-items: center; text-decoration: none; justify-self: start; }
+  .signup__fine { margin: var(--space-0); font-size: var(--text-xs); color: var(--color-muted); }
+  .signup__error { margin: var(--space-0); font-size: var(--text-sm); color: var(--color-danger); }
+  .signup__sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+  /* Opt-in capture has no place on a printed chart. */
+  @media print { .signup { display: none !important; } }
+</style>
