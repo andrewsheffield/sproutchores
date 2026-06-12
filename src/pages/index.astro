@@ -62,7 +62,9 @@ const jsonLd = {
     </ul>
   </section>
 
-  <EmailSignup />
+  <div class="home-signup">
+    <EmailSignup />
+  </div>
 </BaseLayout>
 
 <style>
@@ -111,6 +113,15 @@ const jsonLd = {
     box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
   }
 
+  /* The opt-in block is a top-level child of <main>; center it in the viewport to
+     match the hero/directory above (the .signup card itself is max-width:measure). */
+  .home-signup {
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+    padding-block-end: var(--space-8);
+  }
+
   /* Directory of every live page — simple list for now; grows into grouped
      sections once the catalogue gets large. */
   .directory {
@@ -154,6 +165,9 @@ const jsonLd = {
 
   @media (max-width: 30rem) {
     .directory {
+      padding-inline: var(--space-3);
+    }
+    .home-signup {
       padding-inline: var(--space-3);
     }
   }
