@@ -97,8 +97,11 @@ const doc = await PDFDocument.create()
 doc.registerFontkit(fontkit)
 // Embed the repo's brand font so the PDF renders identically everywhere — the
 // base-14 StandardFonts are NOT embedded and render blank in some viewers.
+// subset:false is REQUIRED: Inter.ttf is a variable font and pdf-lib's subsetter
+// drops/garbles glyphs from it (renders partial text). Full embed (~0.5MB) is fine
+// for a 6-page download and renders every glyph correctly.
 const interBytes = readFileSync('src/assets/fonts/Inter.ttf')
-const font = await doc.embedFont(interBytes, { subset: true })
+const font = await doc.embedFont(interBytes, { subset: false })
 const bold = font // single Inter weight; size + the colored header band carry hierarchy
 
 const charts = bundleChartModels()
