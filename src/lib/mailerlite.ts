@@ -10,7 +10,8 @@ export function isMailerLiteConfigured(account?: string, form?: string): boolean
 }
 
 /** The subscribe endpoint for a given account + form (mirrors the embed snippet's
- *  <form action>). */
+ *  <form action>). Call only after isMailerLiteConfigured() returns true — with empty
+ *  IDs it would build a malformed URL. */
 export function subscribeEndpoint(account: string, form: string): string {
   return `https://assets.mailerlite.com/jsonp/${account}/forms/${form}/subscribe`
 }
