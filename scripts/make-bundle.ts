@@ -1,11 +1,12 @@
 // site/scripts/make-bundle.ts
 // Build step: render the "Age-by-Age Chore Chart Pack" → dist/downloads/<file>.pdf.
 // One US-Letter landscape page per chart from bundleChartModels(), drawn with pdf-lib
-// (Helvetica — no font embedding). Runs AFTER `astro build` (writes into dist/, like
+// (Inter embedded via fontkit). Runs AFTER `astro build` (writes into dist/, like
 // make-pins). Run from seo-test/site:  node --import tsx/esm scripts/make-bundle.ts
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
+import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
 import { bundleChartModels } from '../src/lib/bundle'
 import type { PrintableChart } from '../src/lib/printable-chart'
 
@@ -93,8 +94,12 @@ function drawChart(page: PDFPage, chart: PrintableChart, font: PDFFont, bold: PD
 }
 
 const doc = await PDFDocument.create()
-const font = await doc.embedFont(StandardFonts.Helvetica)
-const bold = await doc.embedFont(StandardFonts.HelveticaBold)
+doc.registerFontkit(fontkit)
+// Embed the repo's brand font so the PDF renders identically everywhere — the
+// base-14 StandardFonts are NOT embedded and render blank in some viewers.
+const interBytes = readFileSync('src/assets/fonts/Inter.ttf')
+const font = await doc.embedFont(interBytes, { subset: true })
+const bold = font // single Inter weight; size + the colored header band carry hierarchy
 
 const charts = bundleChartModels()
 for (const chart of charts) {
