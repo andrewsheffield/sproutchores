@@ -15,7 +15,19 @@ export function buildPrintableChartModel(input: {
   showAges?: boolean
   /** First-column header. Default "Chore". */
   itemNoun?: string
+  /** People names for 'people' column mode. */
+  people?: string[]
+  /** Column mode: 'days' (default) or 'people'. */
+  columnMode?: 'days' | 'people'
 }): PrintableChart {
+  if (input.columnMode === 'people') {
+    return {
+      title: input.titleNoun ?? 'Chore Chart',
+      columns: [input.itemNoun ?? 'Chore', ...(input.people ?? [])],
+      rows: input.chores.map((c) => ({ id: c.id, chore: c.label })),
+    }
+  }
+
   const days = input.days ?? WEEK_DAYS
   const owner = input.childName?.trim() ? `${input.childName.trim()}'s` : 'My'
   const noun = input.titleNoun ?? 'Chore Chart'

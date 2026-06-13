@@ -17,3 +17,19 @@ describe('buildPrintableChartModel', () => {
     expect(m.columns).toEqual(['Chore', 'Sat', 'Sun'])
   })
 })
+
+describe('buildPrintableChartModel — people columns', () => {
+  it('uses people as columns and a household title (no age suffix, no owner name)', () => {
+    const m = buildPrintableChartModel({
+      ageBand: '',
+      chores: [{ id: 'dishes', label: 'Dishes' }],
+      people: ['Mom', 'Dad', 'Sam'],
+      columnMode: 'people',
+      titleNoun: 'Family Chore Chart',
+      showAges: false,
+    })
+    expect(m.columns).toEqual(['Chore', 'Mom', 'Dad', 'Sam'])
+    expect(m.title).toBe('Family Chore Chart')
+    expect(m.rows).toEqual([{ id: 'dishes', chore: 'Dishes' }])
+  })
+})
