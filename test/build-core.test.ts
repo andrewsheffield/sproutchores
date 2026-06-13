@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pageKind } from '../../src/build-core.mjs'
+import { pageKind, categoryForId } from '../../src/build-core.mjs'
 
 describe('pageKind — scale variants', () => {
   it('maps household generator variants to "household"', () => {
@@ -14,5 +14,12 @@ describe('pageKind — scale variants', () => {
   it('still classifies existing kinds', () => {
     expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'reward' } } })).toBe('guide-reward')
     expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'routine' } } })).toBe('guide-routine')
+  })
+})
+
+describe('categoryForId — hub-slug alignment', () => {
+  const taxo = [{ id: 'chore-chart-for-adults', members: ['chore-chart-for-couples', 'family-chore-chart', 'chore-chart-for-multiple-kids'] }]
+  it('returns the hub page slug for a member', () => {
+    expect(categoryForId(taxo, 'chore-chart-for-couples')).toBe('chore-chart-for-adults')
   })
 })
