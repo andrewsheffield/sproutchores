@@ -14,7 +14,8 @@ const pages = defineCollection({
     h1: z.string(),
     intro: z.string(),
     age: z.number().optional(), // age pages: representative age (band derived)
-    generator_variant: z.enum(['chore', 'money', 'routine', 'reward']).optional(),
+    generator_variant: z.enum(['chore', 'money', 'routine', 'reward', 'household']).optional(),
+    people: z.array(z.string()).optional(),
     sections: z.array(z.object({ heading: z.string(), body: z.string() })).default([]),
     faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     category: z.string().nullable().default(null),

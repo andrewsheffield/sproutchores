@@ -159,7 +159,7 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
 
     {showGenerator && (
       <div class="generator-wrap">
-        <ChoreChartGenerator age={d.age} variant={genVariant} />
+        <ChoreChartGenerator age={d.age} variant={genVariant} people={d.people} />
       </div>
     )}
 
@@ -189,7 +189,7 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
         <h2 id="gen-heading">Or build one right now</h2>
         <p>Prefer to jump straight in? Set the age, tweak the chores, and print — no sign-up.</p>
         <div class="generator-wrap">
-          <ChoreChartGenerator age={d.age} />
+          <ChoreChartGenerator age={d.age} variant={d.generator_variant ?? 'chore'} people={d.people} />
         </div>
       </section>
     )}
