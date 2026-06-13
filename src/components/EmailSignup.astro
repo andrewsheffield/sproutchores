@@ -1,18 +1,20 @@
 ---
 // site/src/components/EmailSignup.astro
-// Opt-in email capture — offers the free "Age-by-Age Chore Chart Pack" bundle plus
-// future "new printables" broadcasts. NEVER a gate: the charts are free regardless.
-// A custom, on-brand <form> that fetch()-POSTs straight to MailerLite's subscribe
-// endpoint (CORS-enabled) — no MailerLite JS, no API key in the browser. Renders
-// NOTHING unless the public IDs are configured (mirrors the GA4 gate). Print-hidden.
+// Opt-in email capture for the free "Age-by-Age Chore Chart Pack" + occasional
+// "new printables" broadcasts. NEVER a gate on the site's content: the individual
+// charts stay free. On submit, the form fetch()-POSTs straight to MailerLite's
+// subscribe endpoint (CORS-enabled — no MailerLite JS, no API key in the browser);
+// MailerLite double opt-in emails a confirmation link, and a welcome automation
+// delivers the pack PDF to the inbox once the visitor confirms. So the success
+// state sends people to their inbox — it deliberately does NOT expose an on-site
+// download (gating the bundle on confirmation is what builds a real, confirmed list).
+// Renders NOTHING unless the public IDs are configured (mirrors the GA4 gate). Print-hidden.
 import { isMailerLiteConfigured, subscribeEndpoint } from '../lib/mailerlite'
 
 const account = import.meta.env.PUBLIC_MAILERLITE_ACCOUNT as string | undefined
 const form = import.meta.env.PUBLIC_MAILERLITE_FORM as string | undefined
 const configured = isMailerLiteConfigured(account, form)
 const endpoint = configured ? subscribeEndpoint(account!, form!) : ''
-// The bundle PDF is generated into /downloads at build time (scripts/make-bundle.ts).
-const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
 ---
 
 {configured && (
@@ -46,13 +48,11 @@ const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
     </div>
 
     <div class="signup__state signup__state--success" hidden>
-      <h2 class="signup__title">✓ You're in — download your pack below</h2>
+      <h2 class="signup__title" tabindex="-1">✓ Almost there — check your inbox!</h2>
       <p class="signup__lede">
-        We've also emailed you a confirmation link — click it to start getting new printables now and then.
+        We just emailed you a confirmation link. Click it to confirm, and your free
+        Age-by-Age Chore Chart Pack lands in your inbox moments later.
       </p>
-      <a class="signup__btn signup__btn--download" href={BUNDLE_URL} download>
-        Download the Age-by-Age Chore Chart Pack →
-      </a>
     </div>
   </section>
 )}
@@ -93,9 +93,9 @@ const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
           if (formState) formState.hidden = true
           if (successState) {
             successState.hidden = false
-            // Move focus to the download link so keyboard/SR users land on the next action.
-            var dl = successState.querySelector('a')
-            if (dl) dl.focus()
+            // Move focus to the success heading so keyboard/SR users hear the confirmation.
+            var heading = successState.querySelector('h2')
+            if (heading) heading.focus()
           }
           try { if (window.gtag) window.gtag('event', 'email_signup') } catch (err) {}
         })
@@ -163,7 +163,6 @@ const BUNDLE_URL = '/downloads/age-by-age-chore-chart-pack.pdf'
   }
   .signup__btn:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
   .signup__btn:disabled { opacity: 0.7; cursor: default; }
-  .signup__btn--download { display: inline-flex; align-items: center; text-decoration: none; justify-self: start; }
   .signup__fine { margin: var(--space-0); font-size: var(--text-xs); color: var(--color-muted); }
   .signup__error { margin: var(--space-0); font-size: var(--text-sm); color: var(--color-danger); }
   .signup__sr-only {
