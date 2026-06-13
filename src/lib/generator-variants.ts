@@ -1,9 +1,11 @@
+import { HOUSEHOLD_CHORES } from '../data/household-chores'
+
 // Generator variants. The chore-chart generator is a grid of items × days with a
 // per-cell mark; each variant tweaks the defaults/labels/marks so one component
 // serves several keyword pages (chore chart, bedtime routine, reward chart, money
 // chart) without bespoke tools. Age-based variants (chore, money) draw their
 // default rows from the age dataset; fixed variants (routine, reward) ship their own.
-export type GeneratorVariant = 'chore' | 'routine' | 'reward' | 'money'
+export type GeneratorVariant = 'chore' | 'routine' | 'reward' | 'money' | 'household'
 
 export type VariantItem = { id: string; label: string }
 
@@ -22,6 +24,10 @@ export type VariantConfig = {
   defaultItems?: VariantItem[]
   /** Placeholder for the add-a-row input. */
   addPlaceholder: string
+  /** Column axis: 'days' (Mon–Sun, default) or 'people' (editable person columns). */
+  columnMode?: 'days' | 'people'
+  /** People-mode only: default editable column headers (person names). */
+  defaultPeople?: string[]
 }
 
 export const GENERATOR_VARIANTS: Record<GeneratorVariant, VariantConfig> = {
@@ -71,5 +77,16 @@ export const GENERATOR_VARIANTS: Record<GeneratorVariant, VariantConfig> = {
       { id: 'ready', label: 'Get ready on time' },
       { id: 'teeth', label: 'Brush teeth morning and night' },
     ],
+  },
+  household: {
+    itemNoun: 'Chore',
+    titleNoun: 'Family Chore Chart',
+    mark: 'check',
+    money: false,
+    ageBased: false,
+    columnMode: 'people',
+    defaultPeople: ['Mom', 'Dad', 'Kid 1', 'Kid 2'],
+    defaultItems: HOUSEHOLD_CHORES,
+    addPlaceholder: 'Add a household chore…',
   },
 }
