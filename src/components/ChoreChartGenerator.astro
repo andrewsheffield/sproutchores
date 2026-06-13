@@ -88,8 +88,8 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     )}
 
     {isPeopleMode ? (
-      <div class="control-row" id="ccg-people-editor">
-        <span class="control-label">People</span>
+      <fieldset class="control-row ccg-people-fieldset" id="ccg-people-editor">
+        <legend class="control-label">People</legend>
         <div class="ccg-people-list" id="ccg-people-list">
           {initialPeople.map((person, i) => (
             <div class="ccg-person-row">
@@ -105,7 +105,6 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
                 class="btn ccg-person-remove"
                 type="button"
                 aria-label={`Remove ${person}`}
-                data-index={i}
               >
                 <span class="chart-table__remove-icon" set:html={iconSvg('trash-2')} />
               </button>
@@ -115,7 +114,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
         <button class="btn btn--secondary ccg-people-add-btn" id="ccg-add-person" type="button">
           + Add person
         </button>
-      </div>
+      </fieldset>
     ) : (
       <div class="control-row">
         <label class="control-label" for="ccg-name">Child's name <span class="control-optional">(optional)</span></label>
@@ -423,7 +422,6 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
 
     // Keep the first (chore) header, remove all day/person headers + action.
     const allThs = Array.from(tr.querySelectorAll('th'))
-    const choreHeader = allThs[0]
     // Remove everything except the first th
     allThs.slice(1).forEach((th) => th.remove())
 
@@ -599,6 +597,21 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
       })
   }
 
+  // ---- People-mode: focus recovery after a person is removed ---------------
+  // Mirrors focusAfterRemove for chores: after re-rendering the people editor,
+  // move focus to the .ccg-person input at the removed index (clamped), else
+  // the add-person button — never drop focus to <body>.
+  function focusAfterPersonRemove(removedIndex: number) {
+    const list = document.getElementById('ccg-people-list')
+    const inputs = list?.querySelectorAll<HTMLInputElement>('.ccg-person')
+    if (inputs && inputs.length > 0) {
+      const target = inputs[Math.min(removedIndex, inputs.length - 1)]
+      ;(target ?? inputs[inputs.length - 1]).focus()
+      return
+    }
+    document.getElementById('ccg-add-person')?.focus()
+  }
+
   // ---- People-mode: rebuild the people-editor DOM from columnHeaders -------
   // Replaces the person inputs list so it always reflects the current state.
   function renderPeopleEditor() {
@@ -616,12 +629,13 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
       input.maxLength = 40
       input.autocomplete = 'off'
       input.setAttribute('aria-label', `Person ${i + 1} name`)
+      // Renaming a person only changes a column header — update the array and
+      // re-render the table headers. The household title doesn't depend on
+      // names, so there's no need to rebuild the whole model body or title.
       input.addEventListener('input', () => {
         trackStart()
         columnHeaders[i] = input.value || `Person ${i + 1}`
         renderTableHeaders()
-        renderChartBody()
-        updateTitle()
       })
 
       const removeBtn = document.createElement('button')
@@ -632,11 +646,15 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
       removeBtn.addEventListener('click', () => {
         if (columnHeaders.length <= 1) return // min 1 person
         trackStart()
+        // Read the CURRENT name at click time (the input may have been renamed
+        // since this closure was created) for an accurate announce.
+        const currentName = columnHeaders[i]
         columnHeaders.splice(i, 1)
         renderPeopleEditor()
         renderTableHeaders()
         renderChartBody()
-        announce(`${name} removed`)
+        announce(`${currentName} removed`)
+        focusAfterPersonRemove(i)
       })
 
       row.appendChild(input)
@@ -858,6 +876,21 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   }
 
   /* ---- People editor ---------------------------------------------------- */
+
+  /* The editor is a <fieldset> for screen-reader grouping; strip the browser's
+     default border/padding/margin/min-width so it lays out exactly like the
+     .control-row grid it replaces. */
+  .ccg-people-fieldset {
+    margin: var(--space-0);
+    padding: var(--space-0);
+    border: 0;
+    min-width: 0;
+  }
+
+  .ccg-people-fieldset legend {
+    padding: var(--space-0);
+    margin-bottom: var(--space-1);
+  }
 
   .ccg-people-list {
     display: grid;
