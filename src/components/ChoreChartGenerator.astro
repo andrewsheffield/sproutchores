@@ -18,8 +18,10 @@ import { GENERATOR_VARIANTS, type GeneratorVariant } from '../lib/generator-vari
 export interface Props {
   /** Representative age the chart starts on. Clamped to the supported range. */
   age?: number
-  /** Generator mode: chore (default), money, routine, reward. */
+  /** Generator mode: chore (default), money, routine, reward, household. */
   variant?: GeneratorVariant
+  /** People-mode only: initial person column names (falls back to vc.defaultPeople). */
+  people?: string[]
 }
 
 // Default age 6 keeps existing behaviour; pages pass their own age. The supported
@@ -30,26 +32,43 @@ const { age = 6, variant = 'chore' } = Astro.props
 const vc = GENERATOR_VARIANTS[variant]
 const initialAge = Math.min(SUPPORTED_MAX, Math.max(SUPPORTED_MIN, Math.round(age)))
 
+const isPeopleMode = vc.columnMode === 'people'
+const initialPeople = (Astro.props.people && Astro.props.people.length ? Astro.props.people : vc.defaultPeople) ?? []
+
 // Age-based variants (chore/money) draw rows from the dataset; fixed variants
-// (routine/reward) ship their own default rows.
+// (routine/reward/household) ship their own default rows.
 const initialItems = vc.ageBased ? chartForAge(initialAge).chores : vc.defaultItems!
 const initialBand = vc.ageBased ? chartForAge(initialAge).ageBand : ''
-const initialModel = buildPrintableChartModel({
-  ageBand: initialBand,
-  chores: initialItems,
-  childName: undefined,
-  titleNoun: vc.titleNoun,
-  showAges: vc.ageBased,
-  itemNoun: vc.itemNoun,
-})
+const initialModel = isPeopleMode
+  ? buildPrintableChartModel({
+      ageBand: '',
+      chores: initialItems,
+      people: initialPeople,
+      columnMode: 'people',
+      titleNoun: vc.titleNoun,
+      showAges: false,
+      itemNoun: vc.itemNoun,
+    })
+  : buildPrintableChartModel({
+      ageBand: initialBand,
+      chores: initialItems,
+      childName: undefined,
+      titleNoun: vc.titleNoun,
+      showAges: vc.ageBased,
+      itemNoun: vc.itemNoun,
+    })
 // Suggestions for the add-row datalist: the current default rows.
 const initialSuggestions = initialItems.map((c) => c.label)
-// Day columns + a trailing remove-action column. The remove header is visually
-// hidden (the per-row buttons carry their own labels) but keeps the grid square.
-const dayColumns = initialModel.columns.slice(1)
+// Column headers (everything after the first "Chore" column).
+const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(1)
 ---
 
-<section class="generator" aria-label={`${vc.titleNoun} Generator`} data-ccg-variant={variant}>
+<section
+  class="generator"
+  aria-label={`${vc.titleNoun} Generator`}
+  data-ccg-variant={variant}
+  data-ccg-people={isPeopleMode ? JSON.stringify(initialPeople) : undefined}
+>
   <div class="generator__controls">
 
     {vc.ageBased && (
@@ -68,17 +87,48 @@ const dayColumns = initialModel.columns.slice(1)
       </div>
     )}
 
-    <div class="control-row">
-      <label class="control-label" for="ccg-name">Child's name <span class="control-optional">(optional)</span></label>
-      <input
-        class="control-input"
-        id="ccg-name"
-        type="text"
-        placeholder="e.g. Sam"
-        autocomplete="off"
-        maxlength="40"
-      />
-    </div>
+    {isPeopleMode ? (
+      <div class="control-row" id="ccg-people-editor">
+        <span class="control-label">People</span>
+        <div class="ccg-people-list" id="ccg-people-list">
+          {initialPeople.map((person, i) => (
+            <div class="ccg-person-row">
+              <input
+                class="control-input ccg-person"
+                type="text"
+                value={person}
+                maxlength="40"
+                autocomplete="off"
+                aria-label={`Person ${i + 1} name`}
+              />
+              <button
+                class="btn ccg-person-remove"
+                type="button"
+                aria-label={`Remove ${person}`}
+                data-index={i}
+              >
+                <span class="chart-table__remove-icon" set:html={iconSvg('trash-2')} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button class="btn btn--secondary ccg-people-add-btn" id="ccg-add-person" type="button">
+          + Add person
+        </button>
+      </div>
+    ) : (
+      <div class="control-row">
+        <label class="control-label" for="ccg-name">Child's name <span class="control-optional">(optional)</span></label>
+        <input
+          class="control-input"
+          id="ccg-name"
+          type="text"
+          placeholder="e.g. Sam"
+          autocomplete="off"
+          maxlength="40"
+        />
+      </div>
+    )}
 
   </div>
 
@@ -106,7 +156,7 @@ const dayColumns = initialModel.columns.slice(1)
           <tr>
             <th scope="col" class="chart-table__th chart-table__th--chore">{initialModel.columns[0]}</th>
             {vc.money && <th scope="col" class="chart-table__th chart-table__th--money">Value</th>}
-            {dayColumns.map((col) => (
+            {columnHeaders.map((col) => (
               <th scope="col" class="chart-table__th chart-table__th--day">{col}</th>
             ))}
             <th scope="col" class="chart-table__th chart-table__th--action">
@@ -136,7 +186,7 @@ const dayColumns = initialModel.columns.slice(1)
                   />
                 </td>
               )}
-              {dayColumns.map(() => (
+              {columnHeaders.map(() => (
                 <td class="chart-table__check-cell">
                   <span class="chart-table__box" aria-hidden="true"></span>
                 </td>
@@ -161,7 +211,7 @@ const dayColumns = initialModel.columns.slice(1)
                 <span class="chart-table__money-prefix" aria-hidden="true">$</span>
                 <span id="ccg-money-total">0.00</span>
               </td>
-              <td colspan={dayColumns.length + 1}></td>
+              <td colspan={columnHeaders.length + 1}></td>
             </tr>
           </tfoot>
         )}
@@ -262,7 +312,7 @@ const dayColumns = initialModel.columns.slice(1)
   // (rebuilt on chore/age changes); the add-row input + datalist are static so
   // focus survives rapid multi-add. The caption text node updates in place.
   const ageInput    = document.getElementById('ccg-age')    as HTMLInputElement | null
-  const nameInput   = document.getElementById('ccg-name')   as HTMLInputElement
+  const nameInput   = document.getElementById('ccg-name')   as HTMLInputElement | null
   const preview     = document.getElementById('ccg-preview')!
   const chartBody   = document.getElementById('ccg-chart-body')!
   const newChoreIn  = document.getElementById('ccg-new-chore') as HTMLInputElement
@@ -271,11 +321,19 @@ const dayColumns = initialModel.columns.slice(1)
   const liveRegion  = document.getElementById('ccg-live')!
   const suggestions = document.getElementById('ccg-chore-suggestions')!
 
-  // Generator variant (chore | money | routine | reward), read from the root
-  // data attribute so the island matches the SSR'd mode.
+  // Generator variant (chore | money | routine | reward | household), read from
+  // the root data attribute so the island matches the SSR'd mode.
   const root = document.querySelector('.generator') as HTMLElement | null
   const variant = ((root?.dataset.ccgVariant as GeneratorVariant) || 'chore')
   const vc = GENERATOR_VARIANTS[variant]
+
+  // ---- People-mode detection -----------------------------------------------
+  // peopleMode is true when the variant uses columnMode:'people'. We seed the
+  // initial column headers from the data-ccg-people attribute (set by SSR).
+  const peopleMode = root?.dataset.ccgPeople != null
+  let columnHeaders: string[] = peopleMode
+    ? (JSON.parse(root!.dataset.ccgPeople!) as string[])
+    : [] // populated from model in days-mode during renderChartBody
 
   // ---- State ---------------------------------------------------------------
   // `customChores` starts as null (= use band defaults). Once the user edits
@@ -301,7 +359,18 @@ const dayColumns = initialModel.columns.slice(1)
   }
 
   function currentTitle(): string {
-    const childName = nameInput.value.trim() || undefined
+    if (peopleMode) {
+      return buildPrintableChartModel({
+        ageBand: '',
+        chores: getEffectiveChores(),
+        people: columnHeaders,
+        columnMode: 'people',
+        titleNoun: vc.titleNoun,
+        showAges: false,
+        itemNoun: vc.itemNoun,
+      }).title
+    }
+    const childName = nameInput?.value.trim() || undefined
     return buildPrintableChartModel({
       ageBand: getEffectiveAgeBand(),
       chores: getEffectiveChores(),
@@ -341,15 +410,62 @@ const dayColumns = initialModel.columns.slice(1)
     focusAfterRemove(index, remaining)
   }
 
+  // ---- People-mode: render the editable person-header row -----------------
+  // Rebuilds the <thead> tr so column headers reflect the current columnHeaders
+  // array. Only called in people-mode.
+  function renderTableHeaders() {
+    const table = preview.querySelector('table')
+    if (!table) return
+    const thead = table.querySelector('thead')
+    if (!thead) return
+    const tr = thead.querySelector('tr')
+    if (!tr) return
+
+    // Keep the first (chore) header, remove all day/person headers + action.
+    const allThs = Array.from(tr.querySelectorAll('th'))
+    const choreHeader = allThs[0]
+    // Remove everything except the first th
+    allThs.slice(1).forEach((th) => th.remove())
+
+    // Re-insert: one th per person (reuse day class), then the action th.
+    columnHeaders.forEach((name) => {
+      const th = document.createElement('th')
+      th.scope = 'col'
+      th.className = 'chart-table__th chart-table__th--day'
+      th.textContent = name
+      tr.appendChild(th)
+    })
+    const actionTh = document.createElement('th')
+    actionTh.scope = 'col'
+    actionTh.className = 'chart-table__th chart-table__th--action'
+    actionTh.innerHTML = '<span class="sr-only">Remove</span>'
+    tr.appendChild(actionTh)
+  }
+
   // ---- Render the editable chart body (rows) -------------------------------
   // Rebuilds ONLY #ccg-chart-body so the static thead/tfoot (add input) keep
   // their identity and focus. The caption text is refreshed in place.
   function renderChartBody() {
     const chores  = getEffectiveChores()
     const ageBand = getEffectiveAgeBand()
-    const childName = nameInput.value.trim() || undefined
-    const model = buildPrintableChartModel({ ageBand, chores, childName, titleNoun: vc.titleNoun, showAges: vc.ageBased, itemNoun: vc.itemNoun })
-    const dayColumns = model.columns.slice(1)
+
+    let model
+    if (peopleMode) {
+      model = buildPrintableChartModel({
+        ageBand: '',
+        chores,
+        people: columnHeaders,
+        columnMode: 'people',
+        titleNoun: vc.titleNoun,
+        showAges: false,
+        itemNoun: vc.itemNoun,
+      })
+    } else {
+      const childName = nameInput?.value.trim() || undefined
+      model = buildPrintableChartModel({ ageBand, chores, childName, titleNoun: vc.titleNoun, showAges: vc.ageBased, itemNoun: vc.itemNoun })
+      // In days-mode, sync columnHeaders from the model (Mon–Sun or custom days).
+      columnHeaders = model.columns.slice(1)
+    }
 
     updateTitle(model.title)
 
@@ -358,7 +474,7 @@ const dayColumns = initialModel.columns.slice(1)
     if (model.rows.length === 0) {
       const emptyRow = document.createElement('tr')
       const emptyCell = document.createElement('td')
-      emptyCell.colSpan = dayColumns.length + 2 + (vc.money ? 1 : 0) // chore (+money) + days + action
+      emptyCell.colSpan = columnHeaders.length + 2 + (vc.money ? 1 : 0) // chore (+money) + columns + action
       emptyCell.className = 'chart-table__empty'
       emptyCell.textContent = 'No chores yet — add one below.'
       emptyRow.appendChild(emptyCell)
@@ -405,8 +521,8 @@ const dayColumns = initialModel.columns.slice(1)
           tr.appendChild(moneyCell)
         }
 
-        // Day checkbox cells (one per day column).
-        dayColumns.forEach(() => {
+        // Column checkbox cells (one per column — day or person).
+        columnHeaders.forEach(() => {
           const td = document.createElement('td')
           td.className = 'chart-table__check-cell'
           const box = document.createElement('span')
@@ -483,6 +599,52 @@ const dayColumns = initialModel.columns.slice(1)
       })
   }
 
+  // ---- People-mode: rebuild the people-editor DOM from columnHeaders -------
+  // Replaces the person inputs list so it always reflects the current state.
+  function renderPeopleEditor() {
+    const list = document.getElementById('ccg-people-list')
+    if (!list) return
+    list.innerHTML = ''
+    columnHeaders.forEach((name, i) => {
+      const row = document.createElement('div')
+      row.className = 'ccg-person-row'
+
+      const input = document.createElement('input')
+      input.type = 'text'
+      input.className = 'control-input ccg-person'
+      input.value = name
+      input.maxLength = 40
+      input.autocomplete = 'off'
+      input.setAttribute('aria-label', `Person ${i + 1} name`)
+      input.addEventListener('input', () => {
+        trackStart()
+        columnHeaders[i] = input.value || `Person ${i + 1}`
+        renderTableHeaders()
+        renderChartBody()
+        updateTitle()
+      })
+
+      const removeBtn = document.createElement('button')
+      removeBtn.type = 'button'
+      removeBtn.className = 'btn ccg-person-remove'
+      removeBtn.setAttribute('aria-label', `Remove ${name}`)
+      removeBtn.innerHTML = iconSvg('trash-2', 'chart-table__remove-icon')
+      removeBtn.addEventListener('click', () => {
+        if (columnHeaders.length <= 1) return // min 1 person
+        trackStart()
+        columnHeaders.splice(i, 1)
+        renderPeopleEditor()
+        renderTableHeaders()
+        renderChartBody()
+        announce(`${name} removed`)
+      })
+
+      row.appendChild(input)
+      row.appendChild(removeBtn)
+      list.appendChild(row)
+    })
+  }
+
   // ---- Event: age change (age-based variants only) -------------------------
   ageInput?.addEventListener('input', () => {
     trackStart()
@@ -499,7 +661,7 @@ const dayColumns = initialModel.columns.slice(1)
   })
 
   // ---- Event: name change (title only — no row rebuild) --------------------
-  nameInput.addEventListener('input', () => {
+  nameInput?.addEventListener('input', () => {
     trackStart()
     updateTitle()
   })
@@ -544,6 +706,28 @@ const dayColumns = initialModel.columns.slice(1)
     metrics.track(EVENTS.PDF_DOWNLOAD, { age: currentAge })
     window.print()
   })
+
+  // ---- People-mode: wire the add-person button + existing person inputs ----
+  if (peopleMode) {
+    // Wire the initial person inputs rendered by SSR.
+    // We re-render the editor from the island so the event listeners are fresh.
+    renderPeopleEditor()
+
+    const addPersonBtn = document.getElementById('ccg-add-person')
+    addPersonBtn?.addEventListener('click', () => {
+      trackStart()
+      const newName = `Person ${columnHeaders.length + 1}`
+      columnHeaders.push(newName)
+      renderPeopleEditor()
+      renderTableHeaders()
+      renderChartBody()
+      announce(`${newName} added`)
+      // Focus the new input for immediate rename.
+      const list = document.getElementById('ccg-people-list')
+      const inputs = list?.querySelectorAll<HTMLInputElement>('.ccg-person')
+      inputs?.[inputs.length - 1]?.focus()
+    })
+  }
 
   // ---- Initial render ------------------------------------------------------
   // Seed currentAge from the SSR'd input value (each page sets its own age) so
@@ -673,6 +857,47 @@ const dayColumns = initialModel.columns.slice(1)
     font-weight: var(--weight-medium);
   }
 
+  /* ---- People editor ---------------------------------------------------- */
+
+  .ccg-people-list {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .ccg-person-row {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .ccg-person-row .control-input {
+    flex: 1;
+  }
+
+  .ccg-person-remove {
+    flex-shrink: 0;
+    width: var(--space-7);
+    height: var(--space-7);
+    min-width: var(--space-7);
+    padding: var(--space-0);
+    border-radius: var(--radius-sm);
+    color: var(--color-muted);
+    background-color: transparent;
+    border-color: transparent;
+  }
+
+  .ccg-person-remove:hover,
+  .ccg-person-remove:focus-visible {
+    color: var(--color-danger);
+    background-color: var(--color-danger-soft);
+    border-color: var(--color-danger);
+  }
+
+  .ccg-people-add-btn {
+    justify-self: start;
+    margin-top: var(--space-1);
+  }
+
   /* ---- Preview area ----------------------------------------------------- */
 
   .generator__preview {
@@ -775,7 +1000,8 @@ const dayColumns = initialModel.columns.slice(1)
     min-width: var(--chart-chore-col);
   }
 
-  /* Fixed, comfortable day-column width so Mon–Sun stay even and legible. */
+  /* Fixed, comfortable day-column width so Mon–Sun stay even and legible.
+     Reused for people-mode person columns. */
   .chart-table__th--day,
   .chart-table__check-cell {
     width: var(--chart-day-col);
