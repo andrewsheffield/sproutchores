@@ -3,7 +3,7 @@ import { pageKind } from '../../src/build-core.mjs'
 
 describe('pageKind — scale variants', () => {
   it('maps household generator variants to "household"', () => {
-    for (const variant of ['couples', 'family', 'multikid', 'household']) {
+    for (const variant of ['couples', 'family', 'multi_child', 'household']) {
       expect(pageKind({ type: 'item', build_data: { generator_config: { variant } } })).toBe('household')
     }
   })
