@@ -44,7 +44,11 @@
       "q": "My five-year-old loses interest in the chart after a week. Is that normal?"
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-a-4-year-old",
+    "chore-chart-for-a-6-year-old",
+    "montessori-chore-chart"
+  ],
   "publish_date": "2026-06-12"
 }

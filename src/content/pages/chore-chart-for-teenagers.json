@@ -46,7 +46,11 @@
       "a": "Both, honestly. The expectation that everyone pitches in is what drives the behavior, not the chart. But the chart still earns its place by giving you, the parent, a clear read on how each kid is doing week to week. With our teens it gradually becomes more of a tracking dashboard for us than a guide for them. Build it so it's easy to restart after a busy week throws it off, because real life always does, and a system you can pick back up beats a perfect one that never recovers."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-10-year-olds",
+    "chore-chart-for-a-9-year-old",
+    "chore-chart-for-12-year-old"
+  ],
   "publish_date": "2026-06-15"
 }

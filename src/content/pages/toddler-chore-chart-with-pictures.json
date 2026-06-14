@@ -45,7 +45,11 @@
       "a": "Right where each task actually happens, not all in one place on the fridge. We had the most success splitting the icons up and taping each one at the spot it belongs — the teeth picture at the mirror, hand-washing by the sink — so a toddler can look up, see what's next, and do it without a grown-up talking them through it. Hang everything at their eye level so it's genuinely in their line of sight."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-a-3-year-old",
+    "chore-chart-for-a-4-year-old",
+    "chore-chart-for-a-5-year-old"
+  ],
   "publish_date": "2026-06-23"
 }

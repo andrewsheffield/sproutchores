@@ -46,7 +46,11 @@
       "a": "No, not in any way that matters at this age. The realistic tasks at four are the same regardless of gender: self-care, cleaning up their own mess, and one small shared job. Individual kids gravitate toward different chores, but that comes down to personality, not boy versus girl, so follow the child in front of you rather than a label. Whether you're building a chart for a 4-year-old boy or girl, size it to what they can genuinely manage and let the picture icons carry the routine."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-a-3-year-old",
+    "chore-chart-for-a-5-year-old",
+    "chore-chart-for-a-6-year-old"
+  ],
   "publish_date": "2026-06-11"
 }

@@ -44,7 +44,11 @@
       "a": "Not at seven. At this age the goal is steady progress, not a perfect result. Expect the crooked fold and the streaky table for a while — what matters is that they started and finished the job themselves. If something genuinely needs correcting, do it together as a teaching moment instead of quietly redoing it after they've gone, which only signals their effort didn't count. The quality climbs over months and years of consistency, not overnight. One of our older kids now handles a real responsibility start to finish, unsupervised, and none of that happened in a day — it built up from years of letting imperfect work be good enough at the time."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-12-year-old",
+    "chore-chart-for-a-6-year-old",
+    "chore-chart-for-an-8-year-old"
+  ],
   "publish_date": "2026-06-14"
 }

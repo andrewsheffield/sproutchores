@@ -47,7 +47,11 @@
       "a": "For a six-year-old, we've found paper wins. We did everything on printed pages and taped them up right where the work happens, because the chart only helps if the child can actually see it. Most apps live on a parent's phone, out of the kid's sight, which quietly drains their usefulness at this age. A printed chart on the fridge or a bedroom door sits in your child's line of sight all day and does the reminding for you."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "montessori-chore-chart",
+    "chore-chart-for-a-5-year-old",
+    "chore-chart-for-a-7-year-old"
+  ],
   "publish_date": "2026-06-01"
 }

@@ -45,7 +45,11 @@
       "a": "Fewer, meaningful jobs beat a long wall of tiny ones. We aim for a couple of daily items — self-care plus one household task like dishes or trash — and a small set of weekly jobs. An 8-year-old still benefits from having the standard shown to them rather than a brand-new list piled on, so let complexity rise gradually as they prove they can handle it. A chart with twenty checkboxes overwhelms everyone and gets abandoned; a short, clear one your child can actually own is what sticks."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-12-year-old",
+    "chore-chart-for-a-7-year-old",
+    "chore-chart-for-a-9-year-old"
+  ],
   "publish_date": "2026-06-13"
 }
