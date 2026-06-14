@@ -67,6 +67,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   class="generator"
   aria-label={`${vc.titleNoun} Generator`}
   data-ccg-variant={variant}
+  data-ccg-mark={vc.mark}
   data-ccg-people={isPeopleMode ? JSON.stringify(initialPeople) : undefined}
 >
   <div class="generator__controls">
@@ -1108,8 +1109,10 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     background-color: var(--color-accent-soft);
   }
 
-  /* ---- Reward variant: the box becomes an empty star to earn (sticker/draw) -- */
-  [data-ccg-variant='reward'] .chart-table__box {
+  /* ---- Star mark: the box becomes an empty star to earn (sticker/draw) ----
+     Keyed on the MARK (mark:'star') so every star-mark variant — reward and
+     behavior — renders the ☆; check-mark variants keep the tick box. */
+  [data-ccg-mark='star'] .chart-table__box {
     border: 0;
     background-color: transparent;
     width: auto;
@@ -1118,7 +1121,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     color: var(--color-border);
     font-size: var(--text-xl);
   }
-  [data-ccg-variant='reward'] .chart-table__box::before {
+  [data-ccg-mark='star'] .chart-table__box::before {
     content: '☆';
   }
 
