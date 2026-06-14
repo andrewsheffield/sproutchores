@@ -51,3 +51,27 @@ describe('householdEntryConfig — behavior hub', () => {
     expect(householdEntryConfig('hub', { variant: 'behavior' })).toEqual({ generatorVariant: 'behavior', people: undefined })
   })
 })
+
+import { entryToPlanPage } from '../../src/build-core.mjs'
+describe('entryToPlanPage (corpus refresh reverse-map)', () => {
+  const cases = [
+    ['chore-chart-for-a-6-year-old', { type: 'age', age: 6, target_keyword: 'x', publish_date: '2026-06-01' }, 'age'],
+    ['reward-charts-for-kids', { type: 'guide', generator_variant: 'reward', target_keyword: 'x', publish_date: '2026-06-21' }, 'guide-reward'],
+    ['bedtime-routine-chart', { type: 'guide', generator_variant: 'routine', target_keyword: 'x', publish_date: '2026-06-25' }, 'guide-routine'],
+    ['chore-chart-with-money', { type: 'guide', generator_variant: 'money', target_keyword: 'x', publish_date: '2026-06-17' }, 'guide-money'],
+    ['chore-charts-by-age', { type: 'category', target_keyword: 'x', publish_date: '2026-06-07' }, 'hub'],
+    ['allowance-for-kids-by-age', { type: 'guide', target_keyword: 'x', publish_date: '2026-06-09' }, 'guide-allowance'],
+    ['chore-apps-for-kids', { type: 'guide', target_keyword: 'x', publish_date: '2026-06-27' }, 'guide-roundup'],
+    ['montessori-chore-chart', { type: 'guide', age: 6, target_keyword: 'x', publish_date: '2026-06-19' }, 'guide-montessori'],
+  ]
+  for (const [slug, entry, expectedKind] of cases) {
+    it(`${slug} -> kind ${expectedKind}, preserving id/keyword/date/status`, () => {
+      const p = entryToPlanPage(slug, entry)
+      expect(p.id).toBe(slug)
+      expect(p.target_keyword).toBe('x')
+      expect(p.publish_date).toBe(entry.publish_date)
+      expect(p.status).toBe('planned')
+      expect(pageKind(p)).toBe(expectedKind)
+    })
+  }
+})
