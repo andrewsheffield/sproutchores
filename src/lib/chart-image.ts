@@ -78,3 +78,111 @@ export function chartModelForPage(d: ChartPageData): PrintableChart {
     showAges: true,
   })
 }
+
+// ---- chartSvg: portrait US-Letter (1275×1650) chart-grid → SVG string ----
+// Green brand palette (matches the real printable/bundle, NOT the indigo pins).
+// Filled with a deterministic example pattern so the image looks "in use".
+const CW = 1275
+const CH = 1650
+const GREEN = '#2f7d52'
+const INK = '#243027'
+const MUTED = '#5c6b5f'
+const BORDER = '#e4ddcf'
+const SOFT = '#fdecd9'
+const WHITE = '#ffffff'
+const AMBER = '#e08a1e'
+
+const cesc = (s: unknown) =>
+  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+/** Greedy word-wrap for the chart title. */
+function wrapChart(title: string, maxChars = 26, maxLines = 2): string[] {
+  const words = String(title || '').trim().split(/\s+/)
+  const lines: string[] = []
+  let line = ''
+  for (const w of words) {
+    const next = line ? `${line} ${w}` : w
+    if (next.length > maxChars && line) {
+      lines.push(line)
+      line = w
+    } else line = next
+  }
+  if (line) lines.push(line)
+  if (lines.length > maxLines) {
+    const kept = lines.slice(0, maxLines)
+    kept[maxLines - 1] = `${kept[maxLines - 1]}…`
+    return kept
+  }
+  return lines
+}
+
+/** Deterministic "example" fill: ~80% of cells marked, with gaps. No randomness.
+ *  rowIndex and colIndex are 0-based; colIndex=0 (the label column) is never passed by chartSvg. */
+export function chartCellFilled(rowIndex: number, colIndex: number): boolean {
+  return (rowIndex * 3 + colIndex * 2) % 5 !== 0
+}
+
+export function chartSvg(model: PrintableChart, opts: { title?: string; mark?: 'check' | 'star' } = {}): string {
+  const title = opts.title ?? model.title
+  const glyph = opts.mark === 'star' ? '★' : '✓'
+  const cols = model.columns
+  const rows = model.rows.slice(0, 8)
+  const nCols = cols.length
+
+  const margin = 70
+  const tableTop = 360
+  const tableLeft = margin
+  const tableW = CW - margin * 2
+  const itemColW = Math.round(tableW * 0.34)
+  const cellColW = Math.round((tableW - itemColW) / Math.max(nCols - 1, 1))
+  const headerH = 64
+  const bottomLimit = CH - 130
+  const rowH = Math.min(120, (bottomLimit - (tableTop + headerH)) / Math.max(rows.length, 1))
+
+  const tSize = 64
+  const titleTspans = wrapChart(title)
+    .map((l, i) => `<tspan x="${margin}" y="${Math.round(150 + i * tSize * 1.15)}">${cesc(l)}</tspan>`)
+    .join('')
+
+  let head = `<rect x="${tableLeft}" y="${tableTop}" width="${tableW}" height="${headerH}" rx="10" fill="${GREEN}"/>`
+  head += `<text x="${tableLeft + 18}" y="${tableTop + headerH / 2 + 8}" font-size="26" font-weight="700" fill="${WHITE}">${cesc(cols[0])}</text>`
+  for (let c = 1; c < nCols; c++) {
+    const x = tableLeft + itemColW + (c - 1) * cellColW
+    head += `<text x="${x + cellColW / 2}" y="${tableTop + headerH / 2 + 8}" text-anchor="middle" font-size="24" font-weight="700" fill="${WHITE}">${cesc(cols[c])}</text>`
+  }
+
+  let body = ''
+  let y = tableTop + headerH
+  rows.forEach((row, r) => {
+    body += `<rect x="${tableLeft}" y="${y}" width="${tableW}" height="${rowH}" fill="${r % 2 ? '#faf7f0' : WHITE}"/>`
+    body += `<text x="${tableLeft + 18}" y="${y + rowH / 2 + 8}" font-size="25" fill="${INK}">${cesc(row.chore)}</text>`
+    for (let c = 1; c < nCols; c++) {
+      const cx = tableLeft + itemColW + (c - 1) * cellColW + cellColW / 2
+      const cy = y + rowH / 2
+      body += chartCellFilled(r, c)
+        ? `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="32" fill="${AMBER}">${glyph}</text>`
+        : `<rect x="${cx - 18}" y="${cy - 18}" width="36" height="36" rx="7" fill="none" stroke="${BORDER}" stroke-width="3"/>`
+    }
+    y += rowH
+  })
+
+  let lines = ''
+  for (let c = 1; c < nCols; c++) {
+    const x = tableLeft + itemColW + (c - 1) * cellColW
+    lines += `<line x1="${x}" y1="${tableTop}" x2="${x}" y2="${y}" stroke="${BORDER}" stroke-width="2"/>`
+  }
+  lines += `<rect x="${tableLeft}" y="${tableTop + headerH}" width="${tableW}" height="${y - tableTop - headerH}" fill="none" stroke="${BORDER}" stroke-width="2"/>`
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CW} ${CH}" font-family="Inter">
+  <rect width="${CW}" height="${CH}" fill="${WHITE}"/>
+  <rect x="0" y="0" width="${CW}" height="12" fill="${GREEN}"/>
+  <rect x="${margin}" y="60" width="330" height="48" rx="24" fill="${SOFT}"/>
+  <text x="${margin + 22}" y="92" font-size="24" font-weight="700" letter-spacing="1" fill="${INK}">★ FREE PRINTABLE</text>
+  <text font-size="${tSize}" font-weight="800" fill="${GREEN}">${titleTspans}</text>
+  ${head}
+  ${body}
+  ${lines}
+  <text x="${CW / 2}" y="${CH - 60}" text-anchor="middle" font-size="26" font-weight="700" fill="${GREEN}">sproutchores.com</text>
+  <text x="${CW / 2}" y="${CH - 28}" text-anchor="middle" font-size="20" fill="${MUTED}">A free printable chore chart · ${glyph} = done</text>
+</svg>`
+}
