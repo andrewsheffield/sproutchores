@@ -39,3 +39,15 @@ describe('householdEntryConfig', () => {
     expect(householdEntryConfig('hub', { entry: 'age_picker' })).toEqual({ generatorVariant: undefined, people: undefined })
   })
 })
+
+describe('pageKind — behavior + blank', () => {
+  it('maps behavior and blank item variants', () => {
+    expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'behavior' } } })).toBe('behavior')
+    expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'blank' } } })).toBe('blank')
+  })
+})
+describe('householdEntryConfig — behavior hub', () => {
+  it('the behavior hub uses the behavior generator', () => {
+    expect(householdEntryConfig('hub', { variant: 'behavior' })).toEqual({ generatorVariant: 'behavior', people: undefined })
+  })
+})
