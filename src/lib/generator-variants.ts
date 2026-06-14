@@ -5,7 +5,7 @@ import { HOUSEHOLD_CHORES } from '../data/household-chores'
 // serves several keyword pages (chore chart, bedtime routine, reward chart, money
 // chart) without bespoke tools. Age-based variants (chore, money) draw their
 // default rows from the age dataset; fixed variants (routine, reward) ship their own.
-export type GeneratorVariant = 'chore' | 'routine' | 'reward' | 'money' | 'household'
+export type GeneratorVariant = 'chore' | 'routine' | 'reward' | 'money' | 'household' | 'behavior' | 'blank'
 
 export type VariantItem = { id: string; label: string }
 
@@ -88,5 +88,29 @@ export const GENERATOR_VARIANTS: Record<GeneratorVariant, VariantConfig> = {
     defaultPeople: ['Mom', 'Dad', 'Kid 1', 'Kid 2'],
     defaultItems: HOUSEHOLD_CHORES,
     addPlaceholder: 'Add a household chore…',
+  },
+  behavior: {
+    itemNoun: 'Behavior',
+    titleNoun: 'Behavior Chart',
+    mark: 'star',
+    money: false,
+    ageBased: false,
+    defaultItems: [
+      { id: 'listen', label: 'Listen the first time' },
+      { id: 'kind-words', label: 'Use kind words' },
+      { id: 'share', label: 'Share and take turns' },
+      { id: 'calm-body', label: 'Calm body, calm voice' },
+      { id: 'try-first', label: 'Try before giving up' },
+    ],
+    addPlaceholder: 'Add a behavior to track…',
+  },
+  blank: {
+    itemNoun: 'Chore',
+    titleNoun: 'Chore Chart',
+    mark: 'check',
+    money: false,
+    ageBased: false,
+    defaultItems: [],
+    addPlaceholder: 'Type a chore and press Enter…',
   },
 }
