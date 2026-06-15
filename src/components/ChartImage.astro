@@ -1,0 +1,26 @@
+---
+// Crawlable, on-page preview of the page's printable chart (the PNG that the build
+// renders to /charts/<slug>.png). Print-hidden so it never double-prints over the
+// interactive generator. Explicit width/height avoid layout shift.
+interface Props {
+  slug: string
+  alt: string
+  caption?: string
+}
+const { slug, alt, caption } = Astro.props
+---
+<figure class="chart-image">
+  <img src={`/charts/${slug}.png`} alt={alt} width="1275" height="1650" loading="eager" decoding="async" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+<style>
+  .chart-image { margin: 0 0 1.5rem; text-align: center; }
+  .chart-image img {
+    /* thumbnail preview — intentionally small; full-res PNG is what gets indexed */
+    width: 100%; max-width: 300px; height: auto;
+    border: 1px solid var(--color-border); border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+  .chart-image figcaption { font-size: 0.85rem; color: var(--color-muted); margin-top: 0.4rem; }
+  @media print { .chart-image { display: none; } }
+</style>

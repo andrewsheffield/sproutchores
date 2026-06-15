@@ -6,6 +6,8 @@ import Breadcrumbs from '../components/Breadcrumbs.astro'
 import EmbedChart from '../components/EmbedChart.astro'
 import TableOfContents from '../components/TableOfContents.astro'
 import EmailSignup from '../components/EmailSignup.astro'
+import ChartImage from '../components/ChartImage.astro'
+import { chartEligible } from '../lib/chart-image'
 import { bandForAge } from '../data/chores-by-age'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
@@ -96,6 +98,11 @@ function renderBlocks(body) {
 const site = Astro.site?.href.replace(/\/$/, '') ?? ''
 const pageUrl = `${site}/${entry.id}/`
 
+// Crawlable chart image (built to /charts/<slug>.png) — only for pages that show a chart.
+const hasChartImage = chartEligible(d)
+const chartImageUrl = `${site}/charts/${entry.id}.png`
+const chartAlt = `Free printable ${d.target_keyword} — weekly chart with example marks filled in`
+
 // --- JSON-LD: Article (carries author E-E-A-T) + FAQPage. ---
 // (HowTo removed 2026-06-11: Google deprecated HowTo rich results in 2023, so the
 // markup produced no rich result — dead weight. FAQ kept: valid + adds semantic context.)
@@ -108,6 +115,9 @@ const articleJsonLd = {
   publisher: { '@type': 'Organization', name: 'SproutChores' },
   datePublished: d.publish_date,
   mainEntityOfPage: pageUrl,
+  ...(hasChartImage
+    ? { image: { '@type': 'ImageObject', url: chartImageUrl, width: 1275, height: 1650 } }
+    : {}),
 }
 
 const faqJsonLd = d.faq.length
@@ -156,6 +166,10 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       <p class="byline">{author.byline}</p>
       <p class="page-intro">{d.intro}</p>
     </header>
+
+    {hasChartImage && (
+      <ChartImage slug={entry.id} alt={chartAlt} caption="Preview — customize and print your own below." />
+    )}
 
     {showGenerator && (
       <div class="generator-wrap">
