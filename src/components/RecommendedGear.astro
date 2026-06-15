@@ -1,0 +1,38 @@
+---
+// Honest "recommended gear" affiliate box (physical gear that makes the printable
+// last). Renders NOTHING unless PUBLIC_AMAZON_ASSOCIATE_TAG is set — so the live
+// site is unchanged until the owner opts in. Print-hidden. Pattern mirrors EmbedChart.
+import { affiliateEnabled, affiliateSearchUrl, AFFILIATE_PRODUCTS } from '../lib/affiliate'
+interface Props { productKeys: string[] }
+const { productKeys } = Astro.props
+const tag = import.meta.env.PUBLIC_AMAZON_ASSOCIATE_TAG as string | undefined
+const products = affiliateEnabled(tag)
+  ? productKeys.map((k) => AFFILIATE_PRODUCTS[k]).filter(Boolean)
+  : []
+---
+{products.length > 0 && (
+  <aside class="gear-box" aria-labelledby="gear-heading">
+    <h2 id="gear-heading" class="gear-box__title">Gear that makes this chart last</h2>
+    <ul class="gear-box__list" role="list">
+      {products.map((p) => (
+        <li class="gear-box__item">
+          <span class="gear-box__label">{p.label}</span>
+          <span class="gear-box__blurb">{p.blurb}</span>
+          <a class="gear-box__link" href={affiliateSearchUrl(p.searchKeyword, tag!)} rel="sponsored nofollow noopener" target="_blank">Find it on Amazon →</a>
+        </li>
+      ))}
+    </ul>
+    <p class="gear-box__disclosure">As an Amazon Associate we earn from qualifying purchases — links are to gear we'd genuinely use.</p>
+  </aside>
+)}
+<style>
+  .gear-box { max-width: var(--measure); display: grid; gap: var(--space-3); padding: var(--space-5); background: var(--color-surface-sunken); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); margin-block: var(--space-5); }
+  .gear-box__title { font-size: var(--text-lg); margin-block: var(--space-0); }
+  .gear-box__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+  .gear-box__item { display: grid; gap: var(--space-1); }
+  .gear-box__label { font-weight: var(--weight-medium); }
+  .gear-box__blurb { color: var(--color-muted); font-size: var(--text-sm); line-height: var(--leading-normal); }
+  .gear-box__link { justify-self: start; font-weight: var(--weight-medium); color: var(--color-primary); }
+  .gear-box__disclosure { color: var(--color-muted); font-size: 0.75rem; margin: 0; }
+  @media print { .gear-box { display: none; } }
+</style>

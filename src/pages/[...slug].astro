@@ -8,6 +8,9 @@ import TableOfContents from '../components/TableOfContents.astro'
 import EmailSignup from '../components/EmailSignup.astro'
 import ChartImage from '../components/ChartImage.astro'
 import { chartEligible } from '../lib/chart-image'
+import RecommendedGear from '../components/RecommendedGear.astro'
+import AdSlot from '../components/AdSlot.astro'
+import { gearForPage } from '../lib/affiliate'
 import { bandForAge } from '../data/chores-by-age'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
@@ -225,17 +228,22 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     {!isHub && <TableOfContents items={tocItems} />}
 
     {d.sections.map((section, i) => (
-      <section class="content-section" aria-labelledby={`section-${i}`}>
-        <h2 id={`section-${i}`}>{section.heading}</h2>
-        {renderBlocks(section.body).map((block) =>
-          block.kind === 'list' ? (
-            <ul class="tips-list">{block.items.map((it) => <li>{it}</li>)}</ul>
-          ) : (
-            <p>{block.text}</p>
-          )
-        )}
-      </section>
+      <>
+        <section class="content-section" aria-labelledby={`section-${i}`}>
+          <h2 id={`section-${i}`}>{section.heading}</h2>
+          {renderBlocks(section.body).map((block) =>
+            block.kind === 'list' ? (
+              <ul class="tips-list">{block.items.map((it) => <li>{it}</li>)}</ul>
+            ) : (
+              <p>{block.text}</p>
+            )
+          )}
+        </section>
+        {i === 0 && !isHub && <AdSlot id="mid" />}
+      </>
     ))}
+
+    {!isHub && <RecommendedGear productKeys={gearForPage(entry.id, d)} />}
 
     {d.faq.length > 0 && (
       <section class="content-section" aria-labelledby="faq-heading">

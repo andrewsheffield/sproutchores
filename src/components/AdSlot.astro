@@ -1,0 +1,16 @@
+---
+// Dormant display-ad seam. Renders NOTHING unless PUBLIC_AD_CLIENT is set. When set,
+// emits a labeled, print-hidden container the chosen ad network's unit drops into at
+// activation (network-agnostic — reserves placement + the gate only).
+interface Props { id: string }
+const { id } = Astro.props
+const client = import.meta.env.PUBLIC_AD_CLIENT as string | undefined
+const enabled = typeof client === 'string' && client.trim().length > 0
+---
+{enabled && (
+  <aside class="ad-slot" data-ad-client={client} data-ad-slot={id} aria-label="Advertisement"></aside>
+)}
+<style>
+  .ad-slot { display: block; min-height: 90px; margin-block: var(--space-5); }
+  @media print { .ad-slot { display: none; } }
+</style>
