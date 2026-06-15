@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/make-pins.mjs && node --import tsx/esm scripts/make-bundle.ts",
+    "build": "astro build && node --import tsx/esm scripts/render-images.ts && node --import tsx/esm scripts/make-bundle.ts",
     "preview": "astro preview",
     "shots": "bash scripts/shots.sh",
     "shots:watch": "bash scripts/shots-watch.sh",

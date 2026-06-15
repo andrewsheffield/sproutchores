@@ -29,6 +29,9 @@ function readAll() {
         category: d.category,
         type: d.type,
         publish_date: d.publish_date,
+        age: d.age,
+        generator_variant: d.generator_variant ?? null,
+        people: d.people,
       }
     })
 }
