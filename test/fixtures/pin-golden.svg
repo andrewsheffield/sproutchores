@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1500" font-family="Inter">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4338ca"/>
+      <stop offset="1" stop-color="#312163"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1500" fill="url(#bg)"/>
+
+  <!-- printable-chart motif card -->
+  <rect x="110" y="150" width="780" height="560" rx="28" fill="#ffffff"/>
+  <rect x="110" y="150" width="780" height="92" rx="28" fill="#4338ca"/>
+  <rect x="110" y="200" width="780" height="42" fill="#4338ca"/>
+  <rect x="150" y="182" width="280" height="28" rx="14" fill="#e7e6fb"/>
+  <rect x="150" y="300" width="600" height="6" rx="3" fill="#e6e8f0"/>
+      <rect x="794" y="278" width="48" height="48" rx="10" fill="none" stroke="#4338ca" stroke-width="5"/><rect x="150" y="378" width="600" height="6" rx="3" fill="#e6e8f0"/>
+      <rect x="794" y="356" width="48" height="48" rx="10" fill="none" stroke="#4338ca" stroke-width="5"/><rect x="150" y="456" width="600" height="6" rx="3" fill="#e6e8f0"/>
+      <rect x="794" y="434" width="48" height="48" rx="10" fill="none" stroke="#4338ca" stroke-width="5"/><rect x="150" y="534" width="600" height="6" rx="3" fill="#e6e8f0"/>
+      <rect x="794" y="512" width="48" height="48" rx="10" fill="none" stroke="#4338ca" stroke-width="5"/><rect x="150" y="612" width="600" height="6" rx="3" fill="#e6e8f0"/>
+      <rect x="794" y="590" width="48" height="48" rx="10" fill="none" stroke="#4338ca" stroke-width="5"/>
+
+  <!-- FREE PRINTABLE pill -->
+  <rect x="335" y="770" width="330" height="64" rx="32" fill="#e7e6fb"/>
+  <text x="500" y="812" text-anchor="middle" font-size="30" font-weight="700" letter-spacing="2" fill="#1f2147">FREE PRINTABLE</text>
+
+  <!-- title -->
+  <text text-anchor="middle" font-size="92" font-weight="800" fill="#ffffff"><tspan x="500" y="1014">Chore Chart for a</tspan><tspan x="500" y="1121">6-Year-Old</tspan></text>
+
+  <!-- footer brand -->
+  <g transform="translate(280 1392) scale(2.0)" fill="none">
+      <path d="M12 21v-7" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M12 14c0-3 2.4-5.4 5.4-5.4 0 3-2.4 5.4-5.4 5.4Z" fill="#ffffff"/>
+      <path d="M12 12.5C12 9.9 9.9 7.8 7.2 7.8c0 2.7 2.1 4.7 4.8 4.7Z" fill="#ffffff" opacity="0.78"/>
+    </g>
+  <text x="512" y="1422" text-anchor="middle" font-size="34" font-weight="700" fill="#ffffff">sproutchores.com</text>
+</svg>
