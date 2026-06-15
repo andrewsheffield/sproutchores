@@ -22,6 +22,16 @@ const pages = defineCollection({
     related: z.array(z.string()).default([]),
     publish_date: z.string(), // YYYY-MM-DD; gates publish
     og_image: z.string().optional(),
+    // Reserved seam for a future photo / AI-illustration layer (rendering + source
+    // designed in a later brainstorm). Unused today; harmless placeholder.
+    images: z
+      .array(z.object({
+        src: z.string(),
+        alt: z.string(),
+        kind: z.enum(['photo', 'illustration']).optional(),
+        caption: z.string().optional(),
+      }))
+      .optional(),
   }),
 })
 
