@@ -46,6 +46,15 @@ describe('pageKind — behavior + blank', () => {
     expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'blank' } } })).toBe('blank')
   })
 })
+describe('pageKind — guide-chore (audience chore guide, no age band)', () => {
+  it("maps variant 'chore' WITHOUT an age to guide-chore (e.g. ADHD kids/adults)", () => {
+    expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'chore', audience: 'adult' } } })).toBe('guide-chore')
+    expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'chore' } } })).toBe('guide-chore')
+  })
+  it("still maps variant 'chore' WITH a valid age to an age page (unchanged)", () => {
+    expect(pageKind({ type: 'item', build_data: { generator_config: { variant: 'chore', age: 8 } } })).toBe('age')
+  })
+})
 describe('householdEntryConfig — behavior hub', () => {
   it('the behavior hub uses the behavior generator', () => {
     expect(householdEntryConfig('hub', { variant: 'behavior' })).toEqual({ generatorVariant: 'behavior', people: undefined })
