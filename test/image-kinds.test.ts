@@ -5,7 +5,7 @@ import { IMAGE_KINDS, pinSvg } from '../src/lib/image-kinds'
 
 describe('IMAGE_KINDS registry', () => {
   it('has chart + pin kinds with the right dimensions and dirs', () => {
-    expect(IMAGE_KINDS.chart).toMatchObject({ dir: 'charts', width: 1275, height: 1650 })
+    expect(IMAGE_KINDS.chart).toMatchObject({ dir: 'charts', width: 1650, height: 1275 })
     expect(IMAGE_KINDS.pin).toMatchObject({ dir: 'pins', width: 1000, height: 1500 })
     expect(typeof IMAGE_KINDS.chart.svg).toBe('function')
     expect(typeof IMAGE_KINDS.pin.svg).toBe('function')
@@ -17,7 +17,7 @@ describe('IMAGE_KINDS registry', () => {
   })
   it('chart kind svg draws the chart grid for a page', () => {
     const svg = IMAGE_KINDS.chart.svg({ type: 'age', age: 6, h1: 'Chore Chart for a 6-Year-Old' })
-    expect(svg).toContain('viewBox="0 0 1275 1650"')
+    expect(svg).toContain('viewBox="0 0 1650 1275"')
     expect(svg).toContain('Make the bed')
   })
 })
