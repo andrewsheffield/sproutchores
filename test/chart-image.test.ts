@@ -52,9 +52,9 @@ describe('chartSvg', () => {
     expect(chartSvg(m, { title: 'Chore Chart for a 6-Year-Old', mark: 'check' }))
       .toBe(chartSvg(m, { title: 'Chore Chart for a 6-Year-Old', mark: 'check' }))
   })
-  it('renders the title, a chore row, the brand + portrait viewBox', () => {
+  it('renders the title, a chore row, the brand + landscape viewBox', () => {
     const svg = chartSvg(m, { title: 'Chore Chart for a 6-Year-Old', mark: 'check' })
-    expect(svg).toContain('viewBox="0 0 1275 1650"')
+    expect(svg).toContain('viewBox="0 0 1650 1275"')
     expect(svg).toContain('6-Year-Old')
     expect(svg).toContain('Make the bed')
     expect(svg).toContain('sproutchores.com')

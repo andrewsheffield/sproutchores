@@ -118,8 +118,8 @@ export const IMAGE_KINDS: Record<'pin' | 'chart', ImageKind> = {
   },
   chart: {
     dir: 'charts',
-    width: 1275,
-    height: 1650,
+    width: 1650,
+    height: 1275,
     eligible: chartEligible,
     svg: (d) => chartSvg(chartModelForPage(d), { title: d.h1, mark: chartMarkForPage(d) }),
   },

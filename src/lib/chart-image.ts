@@ -79,18 +79,19 @@ export function chartModelForPage(d: ChartPageData): PrintableChart {
   })
 }
 
-// ---- chartSvg: portrait US-Letter (1275×1650) chart-grid → SVG string ----
-// Green brand palette (matches the real printable/bundle, NOT the indigo pins).
-// Filled with a deterministic example pattern so the image looks "in use".
-const CW = 1275
-const CH = 1650
-const GREEN = '#2f7d52'
-const INK = '#243027'
+// ---- chartSvg: LANDSCAPE US-Letter (1650×1275) chart-grid → SVG string ----
+// Matches the on-site generator (modern theme: indigo #4338ca header, white surface,
+// near-black ink, light borders) so the preview looks like the real chart — and
+// landscape because we tell users to print in landscape.
+const CW = 1650
+const CH = 1275
+const INDIGO = '#4338ca' // --color-primary (modern) — header band + accents + checks
+const INK = '#11151c' // --color-text (modern)
 const MUTED = '#5c6b5f'
-const BORDER = '#e4ddcf'
-const SOFT = '#fdecd9'
+const BORDER = '#d6dae2' // --color-border (modern)
+const SOFT = '#e7e6fb' // --color-accent-soft (modern) — pill
 const WHITE = '#ffffff'
-const AMBER = '#e08a1e'
+const ROW_ALT = '#f6f7fa' // faint zebra
 
 const cesc = (s: unknown) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -130,21 +131,21 @@ export function chartSvg(model: PrintableChart, opts: { title?: string; mark?: '
   const nCols = cols.length
 
   const margin = 70
-  const tableTop = 360
+  const tableTop = 240
   const tableLeft = margin
   const tableW = CW - margin * 2
-  const itemColW = Math.round(tableW * 0.34)
+  const itemColW = Math.round(tableW * 0.30)
   const cellColW = Math.round((tableW - itemColW) / Math.max(nCols - 1, 1))
-  const headerH = 64
-  const bottomLimit = CH - 130
-  const rowH = Math.min(120, (bottomLimit - (tableTop + headerH)) / Math.max(rows.length, 1))
+  const headerH = 60
+  const bottomLimit = CH - 80
+  const rowH = Math.min(110, (bottomLimit - (tableTop + headerH)) / Math.max(rows.length, 1))
 
-  const tSize = 64
-  const titleTspans = wrapChart(title)
-    .map((l, i) => `<tspan x="${margin}" y="${Math.round(150 + i * tSize * 1.15)}">${cesc(l)}</tspan>`)
+  const tSize = 56
+  const titleTspans = wrapChart(title, 40, 2)
+    .map((l, i) => `<tspan x="${margin}" y="${Math.round(150 + i * tSize * 1.12)}">${cesc(l)}</tspan>`)
     .join('')
 
-  let head = `<rect x="${tableLeft}" y="${tableTop}" width="${tableW}" height="${headerH}" rx="10" fill="${GREEN}"/>`
+  let head = `<rect x="${tableLeft}" y="${tableTop}" width="${tableW}" height="${headerH}" rx="10" fill="${INDIGO}"/>`
   head += `<text x="${tableLeft + 18}" y="${tableTop + headerH / 2 + 8}" font-size="26" font-weight="700" fill="${WHITE}">${cesc(cols[0])}</text>`
   for (let c = 1; c < nCols; c++) {
     const x = tableLeft + itemColW + (c - 1) * cellColW
@@ -154,13 +155,13 @@ export function chartSvg(model: PrintableChart, opts: { title?: string; mark?: '
   let body = ''
   let y = tableTop + headerH
   rows.forEach((row, r) => {
-    body += `<rect x="${tableLeft}" y="${y}" width="${tableW}" height="${rowH}" fill="${r % 2 ? '#faf7f0' : WHITE}"/>`
+    body += `<rect x="${tableLeft}" y="${y}" width="${tableW}" height="${rowH}" fill="${r % 2 ? ROW_ALT : WHITE}"/>`
     body += `<text x="${tableLeft + 18}" y="${y + rowH / 2 + 8}" font-size="25" fill="${INK}">${cesc(row.chore)}</text>`
     for (let c = 1; c < nCols; c++) {
       const cx = tableLeft + itemColW + (c - 1) * cellColW + cellColW / 2
       const cy = y + rowH / 2
       body += chartCellFilled(r, c)
-        ? `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="32" fill="${AMBER}">${glyph}</text>`
+        ? `<text x="${cx}" y="${cy + 11}" text-anchor="middle" font-size="34" fill="${INDIGO}">${glyph}</text>`
         : `<rect x="${cx - 18}" y="${cy - 18}" width="36" height="36" rx="7" fill="none" stroke="${BORDER}" stroke-width="3"/>`
     }
     y += rowH
@@ -175,14 +176,14 @@ export function chartSvg(model: PrintableChart, opts: { title?: string; mark?: '
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CW} ${CH}" font-family="Inter">
   <rect width="${CW}" height="${CH}" fill="${WHITE}"/>
-  <rect x="0" y="0" width="${CW}" height="12" fill="${GREEN}"/>
-  <rect x="${margin}" y="60" width="330" height="48" rx="24" fill="${SOFT}"/>
-  <text x="${margin + 22}" y="92" font-size="24" font-weight="700" letter-spacing="1" fill="${INK}">★ FREE PRINTABLE</text>
-  <text font-size="${tSize}" font-weight="800" fill="${GREEN}">${titleTspans}</text>
+  <rect x="0" y="0" width="${CW}" height="12" fill="${INDIGO}"/>
+  <rect x="${margin}" y="56" width="300" height="44" rx="22" fill="${SOFT}"/>
+  <text x="${margin + 20}" y="84" font-size="22" font-weight="700" letter-spacing="1" fill="${INDIGO}">★ FREE PRINTABLE</text>
+  <text font-size="${tSize}" font-weight="800" fill="${INK}">${titleTspans}</text>
   ${head}
   ${body}
   ${lines}
-  <text x="${CW / 2}" y="${CH - 60}" text-anchor="middle" font-size="26" font-weight="700" fill="${GREEN}">sproutchores.com</text>
-  <text x="${CW / 2}" y="${CH - 28}" text-anchor="middle" font-size="20" fill="${MUTED}">A free printable chore chart · ${glyph} = done</text>
+  <text x="${margin}" y="${CH - 34}" font-size="24" font-weight="700" fill="${INDIGO}">sproutchores.com</text>
+  <text x="${CW - margin}" y="${CH - 34}" text-anchor="end" font-size="20" fill="${MUTED}">${glyph} = done · print in landscape</text>
 </svg>`
 }

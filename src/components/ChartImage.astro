@@ -10,14 +10,14 @@ interface Props {
 const { slug, alt, caption } = Astro.props
 ---
 <figure class="chart-image">
-  <img src={`/charts/${slug}.png`} alt={alt} width="1275" height="1650" loading="eager" decoding="async" />
+  <img src={`/charts/${slug}.png`} alt={alt} width="1650" height="1275" loading="eager" decoding="async" />
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 <style>
   .chart-image { margin: 0 0 1.5rem; text-align: center; }
   .chart-image img {
     /* thumbnail preview — intentionally small; full-res PNG is what gets indexed */
-    width: 100%; max-width: 300px; height: auto;
+    width: 100%; max-width: 440px; height: auto;
     border: 1px solid var(--color-border); border-radius: 8px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   }
