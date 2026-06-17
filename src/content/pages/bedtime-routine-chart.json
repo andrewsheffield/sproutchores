@@ -44,8 +44,10 @@
       "a": "Use the editable maker on this page: set your wind-down steps, add a simple picture to each so a young child can follow it, lay them out across the week, and print at home. There's no signup and nothing to pay. Start with just four or five steps for a little one so the routine feels doable rather than long, and keep the order the same night after night — that steadiness is what actually makes bedtime easier."
     }
   ],
-  "category": "reward-charts-for-kids",
-  "related": [],
+  "category": "reward-charts",
+  "related": [
+    "chore-chart-with-rewards"
+  ],
   "publish_date": "2026-06-25",
   "generator_variant": "routine"
 }
