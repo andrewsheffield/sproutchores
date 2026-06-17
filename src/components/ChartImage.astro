@@ -14,13 +14,14 @@ const { slug, alt, caption } = Astro.props
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 <style>
-  .chart-image { margin: 0 0 1.5rem; text-align: center; }
+  /* Hero preview: fills the article's working column (wider than the text measure),
+     sitting just under the author byline. */
+  .chart-image { margin: 0 0 var(--space-5); max-width: var(--chart-max); }
   .chart-image img {
-    /* thumbnail preview — intentionally small; full-res PNG is what gets indexed */
-    width: 100%; max-width: 440px; height: auto;
-    border: 1px solid var(--color-border); border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    width: 100%; height: auto; display: block;
+    border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
   }
-  .chart-image figcaption { font-size: 0.85rem; color: var(--color-muted); margin-top: 0.4rem; }
+  .chart-image figcaption { font-size: var(--text-sm); color: var(--color-muted); margin-top: var(--space-2); }
   @media print { .chart-image { display: none; } }
 </style>

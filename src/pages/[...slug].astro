@@ -167,12 +167,14 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     <header class="page-header">
       <h1 class="page-title">{d.h1}</h1>
       <p class="byline">{author.byline}</p>
-      <p class="page-intro">{d.intro}</p>
     </header>
 
+    {/* Hero: the printable preview, directly under the author byline, filling the article width. */}
     {hasChartImage && (
-      <ChartImage slug={entry.id} alt={chartAlt} caption="Preview — customize and print your own below." />
+      <ChartImage slug={entry.id} alt={chartAlt} caption="A preview of the printable — customize + print your own below." />
     )}
+
+    <p class="page-intro">{d.intro}</p>
 
     {showGenerator && (
       <div class="generator-wrap">
@@ -328,6 +330,7 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     color: var(--color-muted);
     line-height: var(--leading-normal);
     margin-block: var(--space-0);
+    max-width: var(--measure);
   }
 
   .content-section {
