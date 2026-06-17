@@ -1544,6 +1544,8 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     border: 0; background: transparent; border-radius: var(--radius-sm); cursor: pointer; color: var(--color-muted);
   }
   .icon-picker__close:hover, .icon-picker__close:focus-visible { background: var(--color-accent-soft); color: var(--color-primary); outline: none; }
+  /* Pressed: darken the hover wash ~8% for tactile click feedback. */
+  .icon-picker__close:active { background: color-mix(in srgb, var(--color-accent-soft), #000 8%); color: var(--color-primary); }
   .icon-picker__option {
     display: grid; place-items: center; aspect-ratio: 1; border: 0; background: transparent;
     border-radius: var(--radius-sm); cursor: pointer; color: var(--color-text);
