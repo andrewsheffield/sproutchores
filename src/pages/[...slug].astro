@@ -291,7 +291,11 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
 
 <style>
   .page-wrapper {
-    max-width: var(--container-max);
+    /* Center the whole content column on the page (equal margins). Cap it at the
+       widest element (the chart/generator = --chart-max) plus the side padding, so
+       the centered container hugs the content instead of sprawling to 72rem and
+       leaving a big right gap. */
+    max-width: calc(var(--chart-max) + var(--space-5) * 2);
     margin-inline: auto;
     padding-inline: var(--space-5);
     padding-block: var(--space-7);
