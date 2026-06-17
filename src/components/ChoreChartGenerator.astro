@@ -169,7 +169,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
             <tr class="chart-table__row">
               <td class="chart-table__chore">
                 <div class="chart-table__chore-cell-inner">
-                  <span class="chart-table__chore-icon" set:html={choreIconSvg(row.id, row.chore)} />
+                  <button type="button" class="chart-table__chore-icon chart-icon-btn" aria-label={`Change icon for ${row.chore}`} aria-haspopup="menu" aria-expanded="false" set:html={choreIconSvg(row.id, row.chore)} />
                   <span class="chart-table__chore-label">{row.chore}</span>
                 </div>
               </td>
@@ -279,7 +279,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   import { buildPrintableChartModel } from '../lib/printable-chart'
   import { createMetrics, gaSend, EVENTS } from '../lib/metrics'
   import { getVariant } from '../lib/variant-config'
-  import { choreIconSvg, iconSvg } from '../lib/chore-icons'
+  import { choreIconSvg, iconSvg, PICKER_ICONS, iconLabel } from '../lib/chore-icons'
   import { GENERATOR_VARIANTS, type GeneratorVariant } from '../lib/generator-variants'
 
   // ---- Metrics setup -------------------------------------------------------
@@ -441,6 +441,86 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     tr.appendChild(actionTh)
   }
 
+  // ---- Icon overrides: keyed by row.id so they survive re-renders -----------
+  // renderChartBody() reconstructs row objects from buildPrintableChartModel()
+  // each render, so we cannot persist on row.icon directly — this module-level
+  // map is the source of truth, read in renderChartBody when building each row.
+  const iconOverrides: Record<string, string> = {}
+
+  // ---- Icon picker: one shared popover, repositioned next to the active trigger.
+  let iconPickerEl: HTMLElement | null = null
+  let iconPickerOpenFor: HTMLElement | null = null
+  let rowForPicker: { id: string; chore: string } = { id: '', chore: '' }
+
+  function buildIconPicker() {
+    const el = document.createElement('div')
+    el.className = 'icon-picker'
+    el.setAttribute('role', 'menu')
+    el.setAttribute('aria-label', 'Choose icon')
+    el.hidden = true
+    const grid = document.createElement('div')
+    grid.className = 'icon-picker__grid'
+    for (const name of PICKER_ICONS) {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'icon-picker__option'
+      b.setAttribute('role', 'menuitem')
+      b.setAttribute('aria-label', iconLabel(name))
+      b.dataset.icon = name
+      b.innerHTML = iconSvg(name)
+      grid.appendChild(b)
+    }
+    el.appendChild(grid)
+    const reset = document.createElement('button')
+    reset.type = 'button'
+    reset.className = 'icon-picker__reset'
+    reset.setAttribute('role', 'menuitem')
+    reset.dataset.reset = 'true'
+    reset.textContent = '↺ Reset to automatic'
+    el.appendChild(reset)
+    el.addEventListener('click', (e) => {
+      const btn = (e.target as Element).closest('button') as HTMLButtonElement | null
+      if (!btn) return
+      if (btn.dataset.reset) delete iconOverrides[rowForPicker.id]
+      else if (btn.dataset.icon) iconOverrides[rowForPicker.id] = btn.dataset.icon
+      closeIconPicker()
+      renderChartBody()
+    })
+    document.body.appendChild(el)
+    return el
+  }
+
+  function closeIconPicker() {
+    if (!iconPickerEl) return
+    iconPickerEl.hidden = true
+    const t = iconPickerOpenFor
+    iconPickerOpenFor = null
+    if (t) { t.setAttribute('aria-expanded', 'false'); t.focus() }
+  }
+
+  function openIconPicker(trigger: HTMLElement, row: { id: string; chore: string }) {
+    if (!iconPickerEl) iconPickerEl = buildIconPicker()
+    rowForPicker = row
+    iconPickerOpenFor = trigger
+    iconPickerEl.hidden = false
+    trigger.setAttribute('aria-expanded', 'true')
+    const r = trigger.getBoundingClientRect()
+    const pickerW = iconPickerEl.offsetWidth || 256  // 16rem fallback (offsetWidth is 0 on first open)
+    const top = window.scrollY + r.bottom + 6
+    const left = Math.max(8, Math.min(window.scrollX + r.left, window.scrollX + window.innerWidth - pickerW - 8))
+    iconPickerEl.style.top = `${top}px`
+    iconPickerEl.style.left = `${left}px`
+    const first = iconPickerEl.querySelector('button') as HTMLButtonElement | null
+    if (first) first.focus()
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!iconPickerEl || iconPickerEl.hidden) return
+    if (iconPickerEl.contains(e.target as Node) || (iconPickerOpenFor && iconPickerOpenFor.contains(e.target as Node))) return
+    closeIconPicker()
+  })
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeIconPicker() })
+
   // ---- Render the editable chart body (rows) -------------------------------
   // Rebuilds ONLY #ccg-chart-body so the static thead/tfoot (add input) keep
   // their identity and focus. The caption text is refreshed in place.
@@ -488,9 +568,15 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
         choreCell.className = 'chart-table__chore'
         const choreInner = document.createElement('div')
         choreInner.className = 'chart-table__chore-cell-inner'
-        const choreIcon = document.createElement('span')
-        choreIcon.className = 'chart-table__chore-icon'
-        choreIcon.innerHTML = choreIconSvg(row.id, row.chore)
+        const choreIcon = document.createElement('button')
+        choreIcon.type = 'button'
+        choreIcon.className = 'chart-table__chore-icon chart-icon-btn'
+        choreIcon.setAttribute('aria-label', `Change icon for ${row.chore}`)
+        choreIcon.setAttribute('aria-haspopup', 'menu')
+        choreIcon.setAttribute('aria-expanded', 'false')
+        const chosen = iconOverrides[row.id]
+        choreIcon.innerHTML = chosen ? iconSvg(chosen) : choreIconSvg(row.id, row.chore)
+        choreIcon.addEventListener('click', (e) => { e.stopPropagation(); openIconPicker(choreIcon, row) })
         const choreLabel = document.createElement('span')
         choreLabel.className = 'chart-table__chore-label'
         choreLabel.textContent = row.chore
@@ -1417,4 +1503,27 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
       font-size: var(--text-lg);
     }
   }
+  .chart-icon-btn {
+    border: 0; background: transparent; padding: var(--space-1); margin: calc(-1 * var(--space-1));
+    border-radius: var(--radius-sm); cursor: pointer; color: var(--color-primary); line-height: 0;
+  }
+  .chart-icon-btn:hover, .chart-icon-btn:focus-visible { background: var(--color-accent-soft); outline: none; }
+  .icon-picker {
+    position: absolute; z-index: 50; width: 16rem; max-width: calc(100vw - 1rem);
+    background: var(--color-surface); border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--space-3);
+    display: grid; gap: var(--space-2);
+  }
+  .icon-picker__grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-1); }
+  .icon-picker__option {
+    display: grid; place-items: center; aspect-ratio: 1; border: 0; background: transparent;
+    border-radius: var(--radius-sm); cursor: pointer; color: var(--color-text);
+  }
+  .icon-picker__option:hover, .icon-picker__option:focus-visible { background: var(--color-accent-soft); color: var(--color-primary); outline: none; }
+  .icon-picker__reset {
+    border: 0; background: transparent; border-top: var(--border-width) solid var(--color-border);
+    padding-top: var(--space-2); font-size: var(--text-sm); color: var(--color-muted); text-align: left; cursor: pointer;
+  }
+  .icon-picker__reset:hover, .icon-picker__reset:focus-visible { color: var(--color-primary); outline: none; }
+  @media print { .icon-picker { display: none !important; } .chart-icon-btn { padding: 0; margin: 0; } }
 </style>
