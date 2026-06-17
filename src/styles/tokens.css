@@ -102,6 +102,7 @@
   /* Layout */
   --measure: 68ch;          /* readable line length cap */
   --container-max: 72rem;   /* 1152px page gutter cap   */
+  --chart-max: 46rem;       /* generator column — wider than the 68ch text measure, fits the chart */
 
   /* Chore-chart grid sizing — drive the chart's column widths and the table
      min-width (below which .chart-scroll scrolls horizontally on mobile). */

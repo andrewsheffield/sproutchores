@@ -336,6 +336,20 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     max-width: var(--measure);
   }
 
+  /* The generator/chart needs more width than the 68ch reading measure. Give it a
+     dedicated column (left-aligned, shared edge with the prose) so the chart fits
+     WITHOUT clipping the trailing remove button, and isn't so wide it dwarfs the
+     prose (which made the text look "pushed left"). */
+  .generator-wrap {
+    max-width: var(--chart-max);
+  }
+  /* Hub "Or build one right now" wraps the generator inside a .content-section
+     (capped at 68ch) — that cap was narrower than the chart's min-width and clipped
+     the delete column. Widen this section to the chart column. */
+  .generator-cta {
+    max-width: var(--chart-max);
+  }
+
   .chore-checklist {
     list-style: none;
     padding: var(--space-0);
