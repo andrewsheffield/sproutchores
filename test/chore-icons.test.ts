@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { iconNameForChore } from '../src/lib/chore-icons'
+import { ICON_BODY, PICKER_ICONS, iconSvg, iconLabel, iconNameForChore } from '../src/lib/chore-icons'
 
 describe('iconNameForChore', () => {
   it('uses the id fast-path for known dataset chores', () => {
@@ -20,5 +20,37 @@ describe('iconNameForChore', () => {
 
   it('falls back to the friendly neutral star icon (never a bare dot) for no match', () => {
     expect(iconNameForChore('custom-7', 'Stack firewood')).toBe('star')
+  })
+})
+
+describe('PICKER_ICONS', () => {
+  it('has a curated 20–24 palette', () => {
+    expect(PICKER_ICONS.length).toBeGreaterThanOrEqual(20)
+    expect(PICKER_ICONS.length).toBeLessThanOrEqual(24)
+  })
+  it('every entry resolves to an ICON_BODY (no drift)', () => {
+    for (const name of PICKER_ICONS) expect(ICON_BODY[name], name).toBeTruthy()
+  })
+  it('excludes UI-only icons', () => {
+    for (const ui of ['trash-2', 'plus', 'x', 'printer', 'check', 'calendar-check'])
+      expect(PICKER_ICONS).not.toContain(ui)
+  })
+  it('has no duplicates', () => {
+    expect(new Set(PICKER_ICONS).size).toBe(PICKER_ICONS.length)
+  })
+  it('iconSvg renders a non-empty <svg> for each', () => {
+    for (const name of PICKER_ICONS) {
+      const svg = iconSvg(name)
+      expect(svg.startsWith('<svg'), name).toBe(true)
+      expect(svg).toContain('</svg>')
+    }
+  })
+})
+
+describe('iconLabel', () => {
+  it('title-cases an icon name for aria-labels', () => {
+    expect(iconLabel('gamepad-2')).toBe('Gamepad 2')
+    expect(iconLabel('washing-machine')).toBe('Washing Machine')
+    expect(iconLabel('star')).toBe('Star')
   })
 })
