@@ -45,7 +45,10 @@
     }
   ],
   "category": "behavior-charts-for-kids",
-  "related": [],
+  "related": [
+    "behavior-chart-for-classroom",
+    "potty-training-chart"
+  ],
   "publish_date": "2026-06-19",
   "generator_variant": "behavior"
 }
