@@ -119,6 +119,19 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 120ms;
   --duration-base: 220ms;
+
+  /* ---- Category accents (homepage color-coding). ink = AA-on-white text;
+     fill = light tint for blocks/borders. Bright hues only fill large shapes. ---- */
+  --cat-age-ink: #4338ca;        --cat-age-fill: #e7e6fb;
+  --cat-behavior-ink: #be123c;   --cat-behavior-fill: #ffe4e6;
+  --cat-reward-ink: #047857;     --cat-reward-fill: #d1fae5;
+  --cat-adhd-ink: #6d28d9;       --cat-adhd-fill: #ede9fe;
+  --cat-cleaning-ink: #0e7490;   --cat-cleaning-fill: #cffafe;
+  --cat-highlight-ink: #a16207;  --cat-highlight-fill: #fef9c3;
+  --cat-default-ink: #4338ca;    --cat-default-fill: #e7e6fb;
+  /* Hero gradient + scrim */
+  --hero-gradient: linear-gradient(120deg, #4338ca, #7c3aed, #fb7185);
+  --hero-scrim: rgba(0, 0, 0, 0.20);
 }
 
 /* ============================================================================
