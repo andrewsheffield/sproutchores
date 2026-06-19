@@ -58,13 +58,17 @@ const members = isHub
   ? all
       .filter((e) => e.data.category === entry.id && isPublished(e.data.publish_date))
       .sort((a, b) => (a.data.age ?? 999) - (b.data.age ?? 999))
-      .map((e) => ({ slug: e.id, h1: e.data.h1, blurb: firstSentence(e.data.intro), age: e.data.age }))
+      .map((e) => ({ slug: e.id, h1: e.data.h1, blurb: firstSentence(e.data.intro), age: e.data.age, type: e.data.type }))
   : []
 
 // §2: compact "pick your age" grid for the hub, surfaced high so the dominant
-// (navigational) intent is satisfied in one glance. Numeric ages only.
+// (navigational) intent is satisfied in one glance. Only true age pages (not
+// guides that happen to carry an age), and one pill per age (no duplicate labels).
 const ageGrid = isHub
-  ? members.filter((m) => typeof m.age === 'number').map((m) => ({ slug: m.slug, label: String(m.age) }))
+  ? members
+      .filter((m) => m.type === 'age' && typeof m.age === 'number')
+      .filter((m, i, arr) => arr.findIndex((x) => x.age === m.age) === i)
+      .map((m) => ({ slug: m.slug, label: String(m.age) }))
   : []
 
 // Resolve related slugs → { slug, title } using the loaded collection.
