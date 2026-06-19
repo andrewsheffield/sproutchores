@@ -1,0 +1,73 @@
+---
+import TextPage from '../layouts/TextPage.astro'
+import EmbedChart from '../components/EmbedChart.astro'
+
+const site = 'https://sproutchores.com'
+// Branded anchors only — keyword-stuffed widget anchors at scale read as link spam.
+const links = [
+  { label: 'Just the brand name', code: `<a href="${site}/">SproutChores</a>` },
+  { label: 'Descriptive (branded)', code: `<a href="${site}/">Free printable chore charts by SproutChores</a>` },
+  { label: 'Straight to the age charts', code: `<a href="${site}/chore-charts-by-age/">Free printable chore charts by age (SproutChores)</a>` },
+]
+const plain = `Free printable chore charts — SproutChores: ${site}`
+---
+<TextPage
+  title="Link to SproutChores — Free Chore Charts to Share & Embed"
+  description="Featuring our free printable chore charts? Grab a ready-made link or embed widget — no permission needed, a link back is appreciated."
+  h1="Link to / feature SproutChores"
+>
+  <p>
+    Love our charts? <strong>Please share them — no permission needed.</strong> If you mention
+    SproutChores on your blog, classroom page, or in a roundup, a link back is hugely appreciated
+    (it's how a small family site like ours gets found). Here are a few copy-paste ways to do it.
+  </p>
+
+  <h2>Grab a link (copy-paste HTML)</h2>
+  <p>Pick whichever fits your sentence and paste it into your post:</p>
+  {links.map((l) => (
+    <div class="copy-block">
+      <span class="copy-block__label">{l.label}</span>
+      <textarea class="copy-block__code" readonly rows="2">{l.code}</textarea>
+      <button type="button" class="copy-block__btn" data-copy>Copy</button>
+    </div>
+  ))}
+
+  <h2>Or embed a chart (image + link)</h2>
+  <p>Drop this into a post to show the chart itself with a link back:</p>
+  <EmbedChart slug="chore-chart-for-a-6-year-old" h1="Free Printable Chore Chart for a 6-Year-Old" />
+  <p class="muted">Want a different chart? Every chart page has its own embed box near the bottom — grab that one instead.</p>
+
+  <h2>Plain link (forums, email, markdown)</h2>
+  <div class="copy-block">
+    <textarea class="copy-block__code" readonly rows="1">{plain}</textarea>
+    <button type="button" class="copy-block__btn" data-copy>Copy</button>
+  </div>
+
+  <h2>Featured us? Tell us!</h2>
+  <p>
+    If you've linked to or featured SproutChores, we'd genuinely love to know — email
+    <a href="mailto:hello@sproutchores.com">hello@sproutchores.com</a> and we'll say thanks (and
+    happily return the favor where it fits).
+  </p>
+</TextPage>
+
+<script is:inline>
+  document.querySelectorAll('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var ta = b.parentElement.querySelector('textarea')
+      if (!ta) return
+      ta.select()
+      try { navigator.clipboard.writeText(ta.value) } catch (e) { document.execCommand('copy') }
+      var t = b.textContent
+      b.textContent = 'Copied!'
+      setTimeout(function () { b.textContent = t }, 1500)
+    })
+  })
+</script>
+
+<style>
+  .copy-block { max-width: var(--measure); display: grid; gap: var(--space-2); margin-block: var(--space-4); }
+  .copy-block__label { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-muted); }
+  .copy-block__code { width: 100%; font-family: var(--font-mono, monospace); font-size: var(--text-sm); padding: var(--space-3); border-radius: var(--radius-sm); border: var(--border-width) solid var(--color-border); resize: vertical; background: var(--color-surface); color: var(--color-text); }
+  .copy-block__btn { justify-self: start; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-primary-contrast); font-weight: var(--weight-medium); border: none; cursor: pointer; }
+</style>
