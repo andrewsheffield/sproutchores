@@ -1,0 +1,62 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import ChartCard from '../components/ChartCard.astro'
+import { isPublished } from '../lib/publish-gate'
+import { isHubLive } from '../lib/hub'
+import { chartEligible } from '../lib/chart-image'
+import { groupByCategory } from '../lib/home-rows'
+
+const all = await getCollection('pages')
+const live = all
+  .filter((e) => (e.data.type === 'category' ? isHubLive(all, e.id) : isPublished(e.data.publish_date)))
+  .map((e) => ({
+    id: e.id, h1: e.data.h1, type: e.data.type, category: e.data.category ?? null,
+    priority: e.data.priority, age: e.data.age, hasImage: chartEligible(e.data),
+  }))
+const groups = groupByCategory(live)
+const site = Astro.site?.href.replace(/\/$/, '') ?? ''
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'All Free Printable Chore Charts & Routines',
+  url: `${site}/printables/`,
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: groups.flatMap((g) => g.items).map((it, i) => ({
+      '@type': 'ListItem', position: i + 1, url: `${site}/${it.slug}/`, name: it.title,
+    })),
+  },
+}
+---
+<BaseLayout
+  title="All Free Printable Chore Charts & Routines — SproutChores"
+  description="Browse every free printable chore chart, routine, behavior chart, and cleaning schedule on SproutChores — organized by category."
+  jsonLd={jsonLd}
+>
+  <div class="printables">
+    <header class="printables__header">
+      <h1>All free printables</h1>
+      <p>Every chart and routine we've published, by category. All free, no sign-up.</p>
+    </header>
+    {groups.map((g) => (
+      <section class="row">
+        <h2 class="row__heading" style={`--ink:${g.color.ink}`}>{g.title}</h2>
+        <div class="cardgrid">
+          {g.items.map((c) => <ChartCard slug={c.slug} title={c.title} label={c.label} categoryId={c.categoryId} hasImage={c.hasImage} />)}
+        </div>
+      </section>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .printables { max-width: var(--container-max); margin-inline: auto; padding: var(--space-7) var(--space-5) var(--space-8); display: grid; gap: var(--space-7); }
+  .printables__header { max-width: var(--measure); display: grid; gap: var(--space-2); }
+  .printables__header h1 { margin: var(--space-0); }
+  .row { display: grid; gap: var(--space-4); }
+  .row__heading { margin: var(--space-0); color: var(--ink); }
+  .cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: var(--space-4); }
+  @media (max-width: 30rem) { .printables { padding-inline: var(--space-3); } }
+</style>
