@@ -1,174 +1,122 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import EmailSignup from '../components/EmailSignup.astro'
+import ChartCard from '../components/ChartCard.astro'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
-import EmailSignup from '../components/EmailSignup.astro'
+import { chartEligible } from '../lib/chart-image'
+import { homeRows, featuredCards } from '../lib/home-rows'
 
-// Home hero. The brand wordmark lives in the global header (BaseLayout), so the
-// <h1> here is a value proposition, not a repeat of the logo. Top-loaded value +
-// one clear CTA (engagement research: front-load value, minimize the next-step cost).
+const HERO_CHART = 'chore-chart-for-a-6-year-old'
 
-// Directory of every live page. Mirrors the same liveness rules as the [...slug]
-// route (age/guide go live on their publish_date; category hubs only once they
-// aggregate enough members via isHubLive). Listing them all here guarantees every
-// published page — now and every future one — has an inbound link the moment it
-// publishes, so no page is ever orphaned. Newest first.
 const all = await getCollection('pages')
-function firstSentence(text) {
-  const m = (text || '').match(/^.*?[.!?](\s|$)/)
-  return (m ? m[0] : text || '').trim()
-}
-const livePages = all
-  .filter((e) =>
-    e.data.type === 'category' ? isHubLive(all, e.id) : isPublished(e.data.publish_date)
-  )
-  .sort((a, b) => (b.data.publish_date ?? '').localeCompare(a.data.publish_date ?? ''))
-  .map((e) => ({ slug: e.id, title: e.data.h1, blurb: firstSentence(e.data.intro) }))
+// Same liveness rule as the rest of the site; normalize to the home-rows shape.
+const live = all
+  .filter((e) => (e.data.type === 'category' ? isHubLive(all, e.id) : isPublished(e.data.publish_date)))
+  .map((e) => ({
+    id: e.id,
+    h1: e.data.h1,
+    type: e.data.type,
+    category: e.data.category ?? null,
+    priority: e.data.priority,
+    age: e.data.age,
+    hasImage: chartEligible(e.data),
+  }))
+
+const rows = homeRows(live)
+const featured = featuredCards(live)
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'SproutChores',
   url: 'https://sproutchores.com',
-  description:
-    'Free printable chore charts for kids of any age — pick age-appropriate tasks, personalize, and print or save as PDF.',
+  description: 'Free printable chore charts for kids of any age — pick age-appropriate tasks, personalize, and print or save as PDF.',
 }
 ---
-
 <BaseLayout
   title="SproutChores — Free Printable Chore Charts for Kids"
   description="Make a free printable chore chart for your child in under a minute. Pick age-appropriate tasks, add their name, and print or save as PDF — no sign-up."
   jsonLd={jsonLd}
 >
   <section class="hero">
-    <h1 class="hero__title">Free printable chore charts that grow with your kid</h1>
-    <p class="hero__lede">
-      Pick the right tasks for your child's age, personalize the chart, and print
-      or save it as a PDF — in under a minute, with no account and no fuss.
-    </p>
-    <a class="hero__cta" href="/chore-chart-for-a-6-year-old/">Make a chore chart for a 6-year-old →</a>
+    <div class="hero__copy">
+      <h1 class="hero__title">Free printable chore charts that grow with your kid</h1>
+      <p class="hero__lede">Pick the right tasks for your child's age, personalize, and print or save as a PDF — in under a minute, no account.</p>
+      <div class="hero__cta">
+        <a class="btn btn--solid" href={`/${HERO_CHART}/`}>Make a chart →</a>
+        <a class="btn btn--ghost" href="/chore-charts-by-age/">Browse by age</a>
+      </div>
+    </div>
+    <div class="hero__art" aria-hidden="true">
+      <img src={`/charts/${HERO_CHART}.png`} alt="" width="1650" height="1275" loading="eager" decoding="async" />
+    </div>
   </section>
 
-  <section class="directory">
-    <h2 class="directory__heading">All our free printables</h2>
-    <ul class="directory__list" role="list">
-      {livePages.map((p) => (
-        <li class="directory__item">
-          <a class="directory__link" href={`/${p.slug}/`}>{p.title}</a>
-          {p.blurb && <p class="directory__blurb">{p.blurb}</p>}
-        </li>
-      ))}
-    </ul>
-  </section>
+  {featured.length > 0 && (
+    <section class="strip">
+      <h2 class="strip__heading">Most-loved printables</h2>
+      <div class="cardgrid">
+        {featured.map((c) => <ChartCard slug={c.slug} title={c.title} label={c.label} categoryId={c.categoryId} hasImage={c.hasImage} />)}
+      </div>
+    </section>
+  )}
 
-  <div class="home-signup">
-    <EmailSignup />
-  </div>
+  {rows.map((row) => (
+    <section class="row">
+      <div class="row__head">
+        <h2 class="row__heading" style={`--ink:${row.color.ink}`}><a href={`/${row.slug}/`}>{row.title}</a></h2>
+        <a class="row__all" href={`/${row.slug}/`}>See all →</a>
+      </div>
+      <div class="cardgrid">
+        {row.cards.map((c) => <ChartCard slug={c.slug} title={c.title} label={c.label} categoryId={c.categoryId} hasImage={c.hasImage} />)}
+      </div>
+    </section>
+  ))}
+
+  <div class="home-signup"><EmailSignup /></div>
 </BaseLayout>
 
 <style>
+  /* Hero — split, vibrant gradient + scrim for legible white text. */
   .hero {
-    max-width: var(--measure);
-    margin-inline: auto;
-    padding-inline: var(--space-5);
-    padding-block: var(--space-8);
+    position: relative;
+    background-image: linear-gradient(var(--hero-scrim), var(--hero-scrim)), var(--hero-gradient);
+    color: #fff;
     display: grid;
-    gap: var(--space-5);
-  }
-
-  .hero__title {
-    margin-block: var(--space-0);
-    text-wrap: balance;
-  }
-
-  .hero__lede {
-    font-size: var(--text-lg);
-    line-height: var(--leading-normal);
-    color: var(--color-muted);
-    margin-block: var(--space-0);
-  }
-
-  .hero__cta {
-    justify-self: start;
-    display: inline-flex;
+    grid-template-columns: 1.1fr 0.9fr;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
-    background-color: var(--color-primary);
-    color: var(--color-primary-contrast);
-    font-weight: var(--weight-bold);
-    font-size: var(--text-lg);
-    text-decoration: none;
-    box-shadow: var(--shadow-sm);
+    gap: var(--space-6);
+    padding: var(--space-8) var(--space-5);
   }
+  .hero__title { margin: var(--space-0); text-wrap: balance; font-size: var(--text-4xl); }
+  .hero__lede { font-size: var(--text-lg); line-height: var(--leading-normal); margin: var(--space-4) 0 var(--space-5); color: rgba(255,255,255,.92); }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .btn { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); font-weight: var(--weight-bold); font-size: var(--text-lg); text-decoration: none; }
+  .btn--solid { background: #fff; color: var(--cat-age-ink); box-shadow: var(--shadow-sm); }
+  .btn--ghost { background: rgba(255,255,255,.14); color: #fff; border: 2px solid rgba(255,255,255,.7); }
+  .btn:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width) #fff; }
+  .hero__art img { width: 100%; height: auto; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transform: rotate(-3deg); }
 
-  .hero__cta:hover {
-    background-color: var(--color-primary-hover);
-  }
+  /* Shared content width + card grid */
+  .strip, .row { max-width: var(--container-max); margin-inline: auto; padding: var(--space-7) var(--space-5) var(--space-0); display: grid; gap: var(--space-4); }
+  .strip__heading { margin: var(--space-0); color: var(--cat-highlight-ink); }
+  .row__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+  .row__heading { margin: var(--space-0); }
+  .row__heading a { color: var(--ink); text-decoration: none; }
+  .row__all { font-weight: var(--weight-medium); white-space: nowrap; }
+  .cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: var(--space-4); }
 
-  .hero__cta:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
-  }
+  .home-signup { max-width: var(--measure); margin-inline: auto; padding: var(--space-8) var(--space-5); }
 
-  /* The opt-in block is a top-level child of <main>; center it in the viewport to
-     match the hero/directory above (the .signup card itself is max-width:measure). */
-  .home-signup {
-    max-width: var(--measure);
-    margin-inline: auto;
-    padding-inline: var(--space-5);
-    padding-block-end: var(--space-8);
+  @media (max-width: 48rem) {
+    .hero { grid-template-columns: 1fr; }
+    .hero__title { font-size: var(--text-3xl); }
   }
-
-  /* Directory of every live page — simple list for now; grows into grouped
-     sections once the catalogue gets large. */
-  .directory {
-    max-width: var(--measure);
-    margin-inline: auto;
-    padding-inline: var(--space-5);
-    padding-block: var(--space-4) var(--space-8);
-    display: grid;
-    gap: var(--space-5);
-  }
-  .directory__heading {
-    margin-block: var(--space-0);
-  }
-  .directory__list {
-    list-style: none;
-    padding: var(--space-0);
-    margin: var(--space-0);
-    display: grid;
-    gap: var(--space-4);
-  }
-  .directory__item {
-    display: grid;
-    gap: var(--space-1);
-    padding: var(--space-4);
-    background-color: var(--color-surface);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-  }
-  .directory__link {
-    font-family: var(--font-display);
-    font-size: var(--text-lg);
-    font-weight: var(--weight-bold);
-    text-decoration: none;
-  }
-  .directory__blurb {
-    margin: var(--space-0);
-    font-size: var(--text-sm);
-    color: var(--color-muted);
-    line-height: var(--leading-normal);
-  }
-
   @media (max-width: 30rem) {
-    .directory {
-      padding-inline: var(--space-3);
-    }
-    .home-signup {
-      padding-inline: var(--space-3);
-    }
+    .hero__art { display: none; }
+    .strip, .row { padding-inline: var(--space-3); }
+    .home-signup { padding-inline: var(--space-3); }
   }
 </style>
