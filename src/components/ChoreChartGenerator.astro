@@ -261,6 +261,12 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     <p class="generator__print-tip">Tip: choose <strong>Landscape</strong> in the print dialog for the best fit.</p>
   </div>
 
+  <!-- Post-print prompt: revealed after the high-intent print action. -->
+  <aside class="ccg-postprint" id="ccg-postprint" hidden>
+    <p>Printed your chart? <strong>Get all the age-by-age charts in one free PDF.</strong></p>
+    <button type="button" class="btn btn--secondary" id="ccg-get-pack">Get the free pack →</button>
+  </aside>
+
   <!-- Print-only note: replaces the web chrome on paper with a warm, useful
        reminder for the parent. Hidden on screen; shown by print.css. -->
   <p class="print-note">
@@ -829,6 +835,16 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   printBtn.addEventListener('click', () => {
     metrics.track(EVENTS.PDF_DOWNLOAD, { age: currentAge })
     window.print()
+    setTimeout(() => revealPostprint(), 300) // fallback for browsers without 'afterprint'
+  })
+
+  // ---- Post-print prompt: surface the bundle offer after printing -----------
+  const postprintEl = document.getElementById('ccg-postprint')
+  const revealPostprint = () => { if (postprintEl) postprintEl.hidden = false }
+  window.addEventListener('afterprint', revealPostprint)
+  document.getElementById('ccg-get-pack')?.addEventListener('click', () => {
+    revealPostprint()
+    document.getElementById('get-the-pack')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 
   // ---- People-mode: wire the add-person button + existing person inputs ----
@@ -1474,6 +1490,10 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     display: none;
   }
 
+  .ccg-postprint { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-accent-soft); border: var(--border-width) solid var(--color-border); display: grid; gap: var(--space-3); justify-items: start; }
+  .ccg-postprint[hidden] { display: none; }
+  .ccg-postprint p { margin: 0; }
+
   /* ---- Visually-hidden utility (labels + live region) ------------------- */
   .sr-only {
     position: absolute;
@@ -1556,5 +1576,5 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     padding-top: var(--space-2); font-size: var(--text-sm); color: var(--color-muted); text-align: left; cursor: pointer;
   }
   .icon-picker__reset:hover, .icon-picker__reset:focus-visible { color: var(--color-primary); outline: none; }
-  @media print { .icon-picker { display: none !important; } .chart-icon-btn { padding: 0; margin: 0; } }
+  @media print { .icon-picker { display: none !important; } .chart-icon-btn { padding: 0; margin: 0; } .ccg-postprint { display: none !important; } }
 </style>

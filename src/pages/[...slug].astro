@@ -58,7 +58,13 @@ const members = isHub
   ? all
       .filter((e) => e.data.category === entry.id && isPublished(e.data.publish_date))
       .sort((a, b) => (a.data.age ?? 999) - (b.data.age ?? 999))
-      .map((e) => ({ slug: e.id, h1: e.data.h1, blurb: firstSentence(e.data.intro) }))
+      .map((e) => ({ slug: e.id, h1: e.data.h1, blurb: firstSentence(e.data.intro), age: e.data.age }))
+  : []
+
+// §2: compact "pick your age" grid for the hub, surfaced high so the dominant
+// (navigational) intent is satisfied in one glance. Numeric ages only.
+const ageGrid = isHub
+  ? members.filter((m) => typeof m.age === 'number').map((m) => ({ slug: m.slug, label: String(m.age) }))
   : []
 
 // Resolve related slugs → { slug, title } using the loaded collection.
@@ -76,7 +82,16 @@ const liveOthers = all
   .filter((e) => e.id !== entry.id && e.data.type !== 'category' && !relatedSlugs.has(e.id) && isPublished(e.data.publish_date))
   .sort((a, b) => (b.data.publish_date ?? '').localeCompare(a.data.publish_date ?? ''))
   .map((e) => ({ slug: e.id, title: e.data.h1 }))
-const relatedShown = [...related, ...liveOthers].slice(0, 3)
+// §2: age pages always surface the allowance-by-age breakout (concentrate authority
+// on the site's strongest page). Prepend it when live + not the current page.
+const allowanceEntry = byId.get('allowance-for-kids-by-age')
+const allowancePrepend =
+  d.type === 'age' && entry.id !== 'allowance-for-kids-by-age' && allowanceEntry && isPublished(allowanceEntry.data.publish_date)
+    ? [{ slug: 'allowance-for-kids-by-age', title: allowanceEntry.data.h1 }]
+    : []
+const relatedShown = [...allowancePrepend, ...related, ...liveOthers]
+  .filter((r, i, arr) => arr.findIndex((x) => x.slug === r.slug) === i)
+  .slice(0, 3)
 
 // Table-of-contents jump links: the prose sections + FAQ (shown when ≥3 — handled
 // in the component). IDs match the headings rendered below.
@@ -172,6 +187,13 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     {/* Hero: the printable preview, directly under the author byline, filling the article width. */}
     {hasChartImage && (
       <ChartImage slug={entry.id} alt={chartAlt} caption="A preview of the printable — customize + print your own below." />
+    )}
+
+    {isHub && ageGrid.length > 0 && (
+      <nav class="age-grid" aria-label="Pick your child's age">
+        <span class="age-grid__label">Jump to your child's age:</span>
+        {ageGrid.map((a) => <a class="age-grid__item" href={`/${a.slug}/`}>{a.label}</a>)}
+      </nav>
     )}
 
     <p class="page-intro">{d.intro}</p>
@@ -496,4 +518,10 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     color: var(--color-muted);
     line-height: var(--leading-normal);
   }
+
+  /* §2: compact age picker, high on the hub */
+  .age-grid { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); max-width: var(--measure); }
+  .age-grid__label { width: 100%; font-weight: var(--weight-medium); color: var(--color-muted); }
+  .age-grid__item { display: inline-grid; place-items: center; min-width: 2.75rem; padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); font-weight: var(--weight-bold); text-decoration: none; color: var(--color-primary); }
+  .age-grid__item:hover, .age-grid__item:focus-visible { background: var(--color-accent-soft); outline: none; }
 </style>
