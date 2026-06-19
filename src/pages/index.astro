@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
 import EmailSignup from '../components/EmailSignup.astro'
+import { author } from '../data/author'
 import ChartCard from '../components/ChartCard.astro'
 import { isPublished } from '../lib/publish-gate'
 import { isHubLive } from '../lib/hub'
@@ -75,6 +76,15 @@ const jsonLd = {
     </section>
   ))}
 
+  <section class="meet">
+    <img class="meet__art" src={author.image} alt={author.imageAlt} width="750" height="1000" loading="lazy" decoding="async" />
+    <div class="meet__copy">
+      <h2 class="meet__heading">Meet the family behind the charts</h2>
+      <p>We're Andrew and the SproutChores family — foster parents of four, a veteran dad and a homeschooling mom. Every chart and tip here comes from what's actually worked (and flopped) in our own home.</p>
+      <a class="meet__cta" href="/about/">Our story →</a>
+    </div>
+  </section>
+
   <div class="home-signup"><EmailSignup /></div>
 </BaseLayout>
 
@@ -112,6 +122,14 @@ const jsonLd = {
   .cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: var(--space-4); }
 
   .home-signup { max-width: var(--measure); margin-inline: auto; padding: var(--space-8) var(--space-5); }
+
+  .meet { max-width: var(--container-max); margin-inline: auto; padding: var(--space-7) var(--space-5) var(--space-0); display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--space-6); }
+  .meet__art { width: 9rem; height: 12rem; object-fit: cover; object-position: top; border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+  .meet__heading { margin: var(--space-0) 0 var(--space-3); }
+  .meet__copy p { margin: var(--space-0) 0 var(--space-4); color: var(--color-text); line-height: var(--leading-normal); }
+  .meet__cta { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); background: var(--cat-age-ink); color: #fff; font-weight: var(--weight-bold); text-decoration: none; }
+  .meet__cta:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color); }
+  @media (max-width: 40rem) { .meet { grid-template-columns: 1fr; } .meet__art { width: 7rem; height: 9.3rem; } }
 
   @media (max-width: 48rem) {
     .hero { grid-template-columns: 1fr; }

@@ -10,6 +10,11 @@ import { author } from '../data/author'
 >
   <p class="muted">{author.byline}</p>
 
+  <figure class="about-portrait">
+    <img src={author.image} alt={author.imageAlt} width="750" height="1000" loading="eager" decoding="async" />
+    <figcaption>The SproutChores family (illustrated).</figcaption>
+  </figure>
+
   <p>
     SproutChores exists for one reason: the chore charts and advice you find here come from a
     real family that has actually done this — not from a content farm guessing at what parents
@@ -79,3 +84,9 @@ import { author } from '../data/author'
     <a href="/contact/">contact page</a>.
   </p>
 </TextPage>
+
+<style>
+  .about-portrait { max-width: 22rem; margin: var(--space-5) 0; }
+  .about-portrait img { width: 100%; height: auto; border-radius: var(--radius-md); box-shadow: var(--shadow-md); display: block; }
+  .about-portrait figcaption { margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-muted); }
+</style>

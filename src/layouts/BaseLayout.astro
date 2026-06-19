@@ -98,6 +98,7 @@ const choreHubLive = isHubLive(allPages, 'chore-charts-by-age')
 const navLinks = [
   { href: '/', label: 'Home' },
   ...(choreHubLive ? [{ href: '/chore-charts-by-age/', label: 'Chore Charts' }] : []),
+  { href: '/about/', label: 'About' },
 ] as const
 const isActive = (href: string) => normalisePath(href) === currentPath
 ---

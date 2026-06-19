@@ -7,6 +7,9 @@
 export const author = {
   name: 'Andrew',
   byline: 'By Andrew — dad of four (ages 9–18)',
+  /** Brand illustration (a cartoon, not a photo) of the family. */
+  image: '/images/family.jpg',
+  imageAlt: 'A cartoon illustration of the SproutChores family — two parents and their four kids',
   bioParagraphs: [
     "I'm Andrew, and along with my wife I'm one half of the SproutChores family. We're raising four kids — ages 9 to 18 — and we've run chore charts at home for more than 15 years, through every stage from toddler to teen.",
     "As foster parents, we've also seen first-hand how much a consistent routine helps a child settle in, build trust, and learn to self-regulate. Everything on this site comes from what's actually worked (and plenty that hasn't) in our own home.",

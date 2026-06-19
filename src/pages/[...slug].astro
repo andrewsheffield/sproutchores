@@ -262,7 +262,10 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
     )}
 
     <section class="author-card" aria-labelledby="author-heading">
-      <h2 id="author-heading" class="author-card__name">About the author</h2>
+      <div class="author-card__head">
+        <img class="author-card__avatar" src={author.image} alt={author.imageAlt} width="750" height="1000" loading="lazy" decoding="async" />
+        <h2 id="author-heading" class="author-card__name">About the author</h2>
+      </div>
       {author.bioParagraphs.map((p) => <p class="author-card__bio">{p}</p>)}
     </section>
 
@@ -432,6 +435,20 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
   .author-card__name {
     font-size: var(--text-lg);
     margin-block: var(--space-0);
+  }
+  .author-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .author-card__avatar {
+    width: 6rem;
+    height: 6rem;
+    flex: 0 0 auto;
+    object-fit: cover;
+    object-position: top;
+    border-radius: var(--radius-md);
+    border: var(--border-width) solid var(--color-border);
   }
   .author-card__bio {
     margin: var(--space-0);
