@@ -90,7 +90,10 @@ const jsonLd = {
     gap: var(--space-6);
     padding: var(--space-8) var(--space-5);
   }
-  .hero__title { margin: var(--space-0); text-wrap: balance; font-size: var(--text-4xl); }
+  /* Explicit white — the global `:global(h1){color:var(--color-text)}` (dark) in
+     BaseLayout targets the h1 directly and would otherwise override the hero's
+     inherited white, rendering the headline near-black on the gradient. */
+  .hero__title { margin: var(--space-0); text-wrap: balance; font-size: var(--text-4xl); color: #fff; }
   .hero__lede { font-size: var(--text-lg); line-height: var(--leading-normal); margin: var(--space-4) 0 var(--space-5); color: rgba(255,255,255,.92); }
   .hero__cta { display: flex; flex-wrap: wrap; gap: var(--space-3); }
   .btn { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); font-weight: var(--weight-bold); font-size: var(--text-lg); text-decoration: none; }
