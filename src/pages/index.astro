@@ -42,16 +42,18 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <section class="hero">
-    <div class="hero__copy">
-      <h1 class="hero__title">Free printable chore charts that grow with your kid</h1>
-      <p class="hero__lede">Pick the right tasks for your child's age, personalize, and print or save as a PDF — in under a minute, no account.</p>
-      <div class="hero__cta">
-        <a class="btn btn--solid" href={`/${HERO_CHART}/`}>Make a chart →</a>
-        <a class="btn btn--ghost" href="/chore-charts-by-age/">Browse by age</a>
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <h1 class="hero__title">Free printable chore charts that grow with your kid</h1>
+        <p class="hero__lede">Pick the right tasks for your child's age, personalize, and print or save as a PDF — in under a minute, no account.</p>
+        <div class="hero__cta">
+          <a class="btn btn--solid" href={`/${HERO_CHART}/`}>Make a chart →</a>
+          <a class="btn btn--ghost" href="/chore-charts-by-age/">Browse by age</a>
+        </div>
       </div>
-    </div>
-    <div class="hero__art" aria-hidden="true">
-      <img src={`/charts/${HERO_CHART}.png`} alt="" width="1650" height="1275" loading="eager" decoding="async" />
+      <div class="hero__art" aria-hidden="true">
+        <img src={`/charts/${HERO_CHART}.png`} alt="" width="1650" height="1275" loading="eager" decoding="async" />
+      </div>
     </div>
   </section>
 
@@ -91,9 +93,14 @@ const jsonLd = {
 <style>
   /* Hero — split, vibrant gradient + scrim for legible white text. */
   .hero {
-    position: relative;
+    /* Full-bleed gradient; the CONTENT is constrained by .hero__inner so it never
+       sprawls to unreadable line lengths on wide displays. */
     background-image: linear-gradient(var(--hero-scrim), var(--hero-scrim)), var(--hero-gradient);
     color: #fff;
+  }
+  .hero__inner {
+    max-width: var(--container-max);
+    margin-inline: auto;
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
     align-items: center;
@@ -132,7 +139,7 @@ const jsonLd = {
   @media (max-width: 40rem) { .meet { grid-template-columns: 1fr; } .meet__art { width: 7rem; height: 9.3rem; } }
 
   @media (max-width: 48rem) {
-    .hero { grid-template-columns: 1fr; }
+    .hero__inner { grid-template-columns: 1fr; }
     .hero__title { font-size: var(--text-3xl); }
   }
   @media (max-width: 30rem) {
