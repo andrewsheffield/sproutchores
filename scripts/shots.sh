@@ -49,8 +49,14 @@ shoot () { # name  url  width  height
 }
 
 echo "→ capturing…"
-shoot page-desktop "${URL}/chores-for-a-6-year-old/" 1280 2400
-shoot page-mobile  "${URL}/chores-for-a-6-year-old/" 390 2600
-shoot home-desktop "${URL}/" 1280 1500
+CCG="${URL}/chore-chart-for-a-6-year-old"
+shoot page-desktop        "${CCG}/" 1280 2400
+shoot page-mobile         "${CCG}/" 390 2600
+shoot home-desktop        "${URL}/" 1280 1500
+# Chart customization review (color picker + animal character):
+shoot ccg-default         "${CCG}/" 1200 1700
+shoot ccg-ocean-fox       "${CCG}/?ccgColor=ocean&ccgAnimal=fox" 1200 1700
+shoot ccg-berry-owl       "${CCG}/?ccgColor=berry&ccgAnimal=owl" 1200 1700
+shoot ccg-mobile-tangerine "${CCG}/?ccgColor=tangerine&ccgAnimal=cat" 430 2000
 
 echo "Done. Screenshots in ./${OUT}/ — tell the assistant they're ready for review."

@@ -37,8 +37,11 @@
     display: none !important;
   }
 
-  /* Page header text above the generator, and all editorial content sections */
+  /* Page header, intro prose, illustrations, and all editorial content sections —
+     only the chart itself should print. */
   .page-header,
+  .page-intro,
+  .page-illus,
   .content-section {
     display: none !important;
   }
@@ -121,9 +124,22 @@
     font-size: 18pt;
     font-weight: bold;
     text-align: left;
-    padding-bottom: 0.4cm;
+    padding: 0.2cm 0.35cm 0.3cm;
     color: #000;
     font-family: Georgia, "Times New Roman", serif;
+    background-color: var(--chart-accent-tint, transparent);
+    border-radius: 3pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Mascot at the top of the chart prints in the chosen accent. */
+  .chart-title__animal {
+    width: 1.1cm;
+    height: 1.1cm;
+    color: var(--chart-accent, #000);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   /* Column headers */
@@ -131,10 +147,11 @@
     padding: 0.2cm 0.3cm;
     text-align: center;
     font-weight: bold;
-    border-bottom: 1.5pt solid #000;
+    border-bottom: 1.5pt solid var(--chart-accent, #000);
     white-space: nowrap;
     font-size: 9pt;
     color: #000;
+    background: #fff !important;
   }
 
   .chart-table__th--chore {
@@ -186,7 +203,7 @@
     display: inline-block;
     width: 0.5cm;
     height: 0.5cm;
-    border: 1pt solid #333;
+    border: 1pt solid var(--chart-accent, #333);
     border-radius: 2pt;
     background: #fff !important; /* drop the screen accent-soft fill on paper */
     vertical-align: middle;

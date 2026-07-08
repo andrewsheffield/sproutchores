@@ -14,6 +14,8 @@ import { chartForAge } from '../lib/generator-core'
 import { buildPrintableChartModel } from '../lib/printable-chart'
 import { choreIconSvg, iconSvg } from '../lib/chore-icons'
 import { GENERATOR_VARIANTS, type GeneratorVariant } from '../lib/generator-variants'
+import { CHART_COLORS } from '../data/chart-colors'
+import { CHART_ANIMALS } from '../data/chart-animals'
 
 export interface Props {
   /** Representative age the chart starts on. Clamped to the supported range. */
@@ -130,6 +132,30 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
       </div>
     )}
 
+    <!-- Chart color: curated print-safe accents. "Default" clears --chart-accent
+         (falls back to the theme primary); other swatches set it on .generator. -->
+    <div class="control-row control-row--full">
+      <span class="control-label" id="ccg-color-label">Chart color</span>
+      <div class="ccg-swatches" role="group" aria-labelledby="ccg-color-label">
+        <button type="button" class="ccg-swatch is-selected" data-color-id="default" aria-pressed="true" aria-label="Default color" style="--sw: var(--color-primary)"></button>
+        {CHART_COLORS.map((c) => (
+          <button type="button" class="ccg-swatch" data-color-id={c.id} aria-pressed="false" aria-label={c.label} style={`--sw: ${c.hex}`}></button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Chart character: optional two-tone animal at the top of the chart; it
+         adopts the chosen accent color. "None" is the default. -->
+    <div class="control-row control-row--full">
+      <span class="control-label" id="ccg-animal-label">Add a character <span class="control-optional">(optional)</span></span>
+      <div class="ccg-animals" role="group" aria-labelledby="ccg-animal-label">
+        <button type="button" class="ccg-animal-opt is-selected" data-animal-id="none" aria-pressed="true" aria-label="No character">None</button>
+        {CHART_ANIMALS.map((a) => (
+          <button type="button" class="ccg-animal-opt" data-animal-id={a.id} aria-pressed="false" aria-label={a.label} set:html={a.svg} />
+        ))}
+      </div>
+    </div>
+
   </div>
 
   <!-- Live chart preview = the SINGLE editable surface -------------------- -->
@@ -144,6 +170,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     <!-- Caption is a real heading ABOVE the scroll area so it gets full width
          and never collides with / wraps into the colored header band. -->
     <div class="chart-title" id="ccg-chart-title">
+      <span class="chart-title__animal" id="ccg-animal" hidden aria-hidden="true"></span>
       <span class="chart-title__icon" set:html={iconSvg('calendar-check')} />
       <span class="chart-title__text">{initialModel.title}</span>
     </div>
@@ -287,6 +314,8 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   import { getVariant } from '../lib/variant-config'
   import { choreIconSvg, iconSvg, PICKER_ICONS, iconLabel } from '../lib/chore-icons'
   import { GENERATOR_VARIANTS, type GeneratorVariant } from '../lib/generator-variants'
+  import { colorById, tint } from '../data/chart-colors'
+  import { animalById } from '../data/chart-animals'
 
   // ---- Metrics setup -------------------------------------------------------
   const metrics = createMetrics({
@@ -869,6 +898,62 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     })
   }
 
+  // ---- Chart color + character customization -------------------------------
+  // Ephemeral + print-first: color sets scoped CSS vars on the generator root;
+  // the animal is injected into the title band and adopts the accent. Spec:
+  // docs/superpowers/specs/2026-07-07-chart-color-and-animal-customization-design.md
+  const animalSlot = document.getElementById('ccg-animal')
+  const titleIcon = document.querySelector('#ccg-chart-title .chart-title__icon') as HTMLElement | null
+
+  function applyColor(hex: string | null) {
+    if (!root) return
+    if (hex) {
+      root.style.setProperty('--chart-accent', hex)
+      root.style.setProperty('--chart-accent-tint', tint(hex, 0.86))
+    } else {
+      root.style.removeProperty('--chart-accent')
+      root.style.removeProperty('--chart-accent-tint')
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.ccg-swatch').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      trackStart()
+      document.querySelectorAll('.ccg-swatch').forEach((b) => {
+        b.classList.remove('is-selected')
+        b.setAttribute('aria-pressed', 'false')
+      })
+      btn.classList.add('is-selected')
+      btn.setAttribute('aria-pressed', 'true')
+      const id = btn.dataset.colorId
+      applyColor(id && id !== 'default' ? (colorById(id)?.hex ?? null) : null)
+    })
+  })
+
+  function applyAnimal(id: string | null) {
+    const a = animalById(id)
+    if (animalSlot) {
+      if (a) { animalSlot.innerHTML = a.svg; animalSlot.hidden = false }
+      else { animalSlot.innerHTML = ''; animalSlot.hidden = true }
+    }
+    // When a character is shown, hide the default calendar glyph so the title
+    // band isn't crowded with two icons.
+    if (titleIcon) titleIcon.hidden = !!a
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.ccg-animal-opt').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      trackStart()
+      document.querySelectorAll('.ccg-animal-opt').forEach((b) => {
+        b.classList.remove('is-selected')
+        b.setAttribute('aria-pressed', 'false')
+      })
+      btn.classList.add('is-selected')
+      btn.setAttribute('aria-pressed', 'true')
+      applyAnimal(btn.dataset.animalId ?? 'none')
+    })
+  })
+
   // ---- Initial render ------------------------------------------------------
   // Seed currentAge from the SSR'd input value (each page sets its own age) so
   // hydration preserves the rendered age instead of snapping back to 6.
@@ -880,6 +965,16 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   // yet): maybeTrackComplete() is guarded by startFired, which is still false.
   // renderChartBody() also builds the initial (exclusion-aware) datalist.
   renderChartBody()
+
+  // QA / marketing screenshots: ?ccgColor=<id>&ccgAnimal=<id> pre-applies a
+  // selection on load (e.g. ?ccgColor=ocean&ccgAnimal=fox). Inert without params.
+  try {
+    const q = new URLSearchParams(location.search)
+    const cId = q.get('ccgColor')
+    const aId = q.get('ccgAnimal')
+    if (cId) (document.querySelector(`.ccg-swatch[data-color-id="${cId}"]`) as HTMLButtonElement | null)?.click()
+    if (aId) (document.querySelector(`.ccg-animal-opt[data-animal-id="${aId}"]`) as HTMLButtonElement | null)?.click()
+  } catch { /* ignore malformed query */ }
 
 </script>
 
@@ -1080,10 +1175,13 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     color: var(--color-text);
     line-height: var(--leading-snug);
     text-wrap: balance;
+    background-color: var(--chart-accent-tint, transparent);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
   }
 
   .chart-title__icon {
-    color: var(--color-primary);
+    color: var(--chart-accent, var(--color-primary));
     --icon-size: var(--space-6);
   }
 
@@ -1125,7 +1223,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     color: var(--color-primary-contrast);
-    background-color: var(--color-primary);
+    background-color: var(--chart-accent, var(--color-primary));
     white-space: nowrap;
   }
 
@@ -1225,7 +1323,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     vertical-align: middle;
     width: var(--space-5);
     height: var(--space-5);
-    border: var(--border-checkbox) solid var(--color-primary);
+    border: var(--border-checkbox) solid var(--chart-accent, var(--color-primary));
     border-radius: var(--radius-sm);
     background-color: var(--color-accent-soft);
   }
@@ -1544,7 +1642,7 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
   }
   .chart-icon-btn {
     border: 0; background: transparent; padding: var(--space-1); margin: calc(-1 * var(--space-1));
-    border-radius: var(--radius-sm); cursor: pointer; color: var(--color-primary); line-height: 0;
+    border-radius: var(--radius-sm); cursor: pointer; color: var(--chart-accent, var(--color-primary)); line-height: 0;
   }
   .chart-icon-btn:hover, .chart-icon-btn:focus-visible { background: var(--color-accent-soft); outline: none; }
   .icon-picker {
@@ -1576,5 +1674,48 @@ const columnHeaders = isPeopleMode ? initialPeople : initialModel.columns.slice(
     padding-top: var(--space-2); font-size: var(--text-sm); color: var(--color-muted); text-align: left; cursor: pointer;
   }
   .icon-picker__reset:hover, .icon-picker__reset:focus-visible { color: var(--color-primary); outline: none; }
+  /* ---- Color swatches + character picker (customization controls) -------- */
+  .ccg-swatches { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .ccg-swatch {
+    width: var(--space-7); height: var(--space-7); min-width: var(--space-7);
+    padding: 0; border-radius: 50%; cursor: pointer;
+    background-color: var(--sw, var(--color-primary));
+    border: var(--border-width) solid var(--color-border);
+  }
+  .ccg-swatch.is-selected {
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--sw, var(--color-primary));
+  }
+  .ccg-swatch:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color); }
+
+  .ccg-animals { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+  .ccg-animal-opt {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: var(--space-8); height: var(--space-8); padding: var(--space-1);
+    border-radius: var(--radius-md); cursor: pointer; line-height: 1;
+    background: var(--color-surface); border: var(--border-width) solid var(--color-border);
+    color: var(--chart-accent, var(--color-primary));
+    font-size: var(--text-xs); font-weight: var(--weight-medium);
+  }
+  .ccg-animal-opt svg { width: 100%; height: 100%; }
+  .ccg-animal-opt:hover { background: var(--color-accent-soft); }
+  .ccg-animal-opt.is-selected {
+    border-color: var(--chart-accent, var(--color-primary));
+    box-shadow: inset 0 0 0 1px var(--chart-accent, var(--color-primary));
+    background: var(--color-accent-soft);
+  }
+  .ccg-animal-opt:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color); }
+
+  /* Chart-title mascot slot (top of the chart; adopts the chosen accent). */
+  .chart-title__animal {
+    display: inline-flex; align-items: center; flex-shrink: 0;
+    width: var(--space-8); height: var(--space-8);
+    color: var(--chart-accent, var(--color-primary));
+  }
+  .chart-title__animal svg { width: 100%; height: 100%; }
+  .chart-title__icon[hidden], .chart-title__animal[hidden] { display: none; }
+
+  /* Full-width control rows (color + character) so swatches/animals have room. */
+  @media (min-width: 30rem) { .control-row--full { grid-column: 1 / -1; } }
+
   @media print { .icon-picker { display: none !important; } .chart-icon-btn { padding: 0; margin: 0; } .ccg-postprint { display: none !important; } }
 </style>
