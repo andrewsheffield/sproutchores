@@ -50,7 +50,8 @@
   ],
   "category": "cleaning-schedules",
   "related": [
-    "chore-wheel"
+    "chore-wheel",
+    "house-cleaning-schedule"
   ],
   "publish_date": "2026-06-18",
   "generator_variant": "routine"
