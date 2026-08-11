@@ -9,7 +9,20 @@
 // state sends people to their inbox — it deliberately does NOT expose an on-site
 // download (gating the bundle on confirmation is what builds a real, confirmed list).
 // Renders NOTHING unless the public IDs are configured (mirrors the GA4 gate). Print-hidden.
+//
+// May be rendered MORE THAN ONCE per page (e.g. a compact inline form at the
+// peak-intent moment after the generator + the full form near the foot). Each
+// instance needs a UNIQUE `id` so element ids/labels don't collide; the inline
+// script wires every instance and guards against double-init.
 import { isMailerLiteConfigured, subscribeEndpoint } from '../lib/mailerlite'
+
+interface Props {
+  id?: string
+  compact?: boolean
+}
+const { id = 'get-the-pack', compact = false } = Astro.props as Props
+const headingId = `${id}-heading`
+const emailId = `${id}-email`
 
 const account = import.meta.env.PUBLIC_MAILERLITE_ACCOUNT as string | undefined
 const form = import.meta.env.PUBLIC_MAILERLITE_FORM as string | undefined
@@ -18,19 +31,21 @@ const endpoint = configured ? subscribeEndpoint(account!, form!) : ''
 ---
 
 {configured && (
-  <section class="signup" id="get-the-pack" aria-labelledby="signup-heading" data-endpoint={endpoint}>
+  <section class:list={['signup', compact && 'signup--compact']} id={id} aria-labelledby={headingId} data-endpoint={endpoint}>
     <div class="signup__state signup__state--form">
-      <h2 id="signup-heading" class="signup__title">Get the free Age-by-Age Chore Chart Pack</h2>
+      <h2 id={headingId} class="signup__title">
+        {compact ? 'Want every age in one file? Get the free Age-by-Age Pack' : 'Get the free Age-by-Age Chore Chart Pack'}
+      </h2>
       <p class="signup__lede">
-        Six printable charts (ages 4–10) plus reward and routine sheets, in one tidy PDF.
-        We'll also send new printables and the occasional real parenting tip. The charts on
-        this site are always free — no sign-up needed.
+        {compact
+          ? 'Six printable charts (ages 4–10) plus reward and routine sheets, in one tidy PDF — free, straight to your inbox.'
+          : "Six printable charts (ages 4–10) plus reward and routine sheets, in one tidy PDF. We'll also send new printables and the occasional real parenting tip. The charts on this site are always free — no sign-up needed."}
       </p>
       <form class="signup__form" action={endpoint} method="post">
-        <label class="signup__sr-only" for="signup-email">Your email address</label>
+        <label class="signup__sr-only" for={emailId}>Your email address</label>
         <input
           class="signup__input"
-          id="signup-email"
+          id={emailId}
           type="email"
           name="fields[email]"
           placeholder="you@email.com"
@@ -59,50 +74,57 @@ const endpoint = configured ? subscribeEndpoint(account!, form!) : ''
 
 <script is:inline>
   (function () {
-    var el = document.querySelector('.signup[data-endpoint]')
-    if (!el) return
-    var form = el.querySelector('.signup__form')
-    var formState = el.querySelector('.signup__state--form')
-    var successState = el.querySelector('.signup__state--success')
-    var errorEl = el.querySelector('.signup__error')
-    // Query the submit button explicitly — the success state also has a .signup__btn
-    // (the download link), so a bare .signup__btn lookup would be order-dependent.
-    var btn = el.querySelector('button[type="submit"]')
-    var btnLabel = btn ? btn.textContent : ''
-    if (!form) return
-    form.addEventListener('submit', function (e) {
-      e.preventDefault()
-      if (errorEl) errorEl.hidden = true
-      var input = form.querySelector('input[type="email"]')
-      var email = input && input.value ? input.value.trim() : ''
-      if (!email) return
-      if (btn) { btn.disabled = true; btn.textContent = 'Sending…' }
-      // ml-submit + anticsrf are also hidden inputs on the native <form> (the no-JS
-      // fallback); the fetch path rebuilds the body, so both copies must stay in sync.
-      var body = new URLSearchParams()
-      body.set('fields[email]', email)
-      body.set('ml-submit', '1')
-      body.set('anticsrf', 'true')
-      fetch(el.getAttribute('data-endpoint'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
+    // Wire EVERY signup instance on the page. This <script is:inline> is emitted once
+    // per rendered component, so it may run more than once — the data-wired guard makes
+    // init idempotent so a form is never bound (and never double-submits) twice.
+    var nodes = document.querySelectorAll('.signup[data-endpoint]')
+    if (!nodes.length) return
+    Array.prototype.forEach.call(nodes, function (el) {
+      if (el.getAttribute('data-wired')) return
+      el.setAttribute('data-wired', '1')
+      var form = el.querySelector('.signup__form')
+      var formState = el.querySelector('.signup__state--form')
+      var successState = el.querySelector('.signup__state--success')
+      var errorEl = el.querySelector('.signup__error')
+      // Query the submit button explicitly — the success state also has a .signup__btn
+      // (the download link), so a bare .signup__btn lookup would be order-dependent.
+      var btn = el.querySelector('button[type="submit"]')
+      var btnLabel = btn ? btn.textContent : ''
+      if (!form) return
+      form.addEventListener('submit', function (e) {
+        e.preventDefault()
+        if (errorEl) errorEl.hidden = true
+        var input = form.querySelector('input[type="email"]')
+        var email = input && input.value ? input.value.trim() : ''
+        if (!email) return
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending…' }
+        // ml-submit + anticsrf are also hidden inputs on the native <form> (the no-JS
+        // fallback); the fetch path rebuilds the body, so both copies must stay in sync.
+        var body = new URLSearchParams()
+        body.set('fields[email]', email)
+        body.set('ml-submit', '1')
+        body.set('anticsrf', 'true')
+        fetch(el.getAttribute('data-endpoint'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString(),
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error('bad status ' + r.status)
+            if (formState) formState.hidden = true
+            if (successState) {
+              successState.hidden = false
+              // Move focus to the success heading so keyboard/SR users hear the confirmation.
+              var heading = successState.querySelector('h2')
+              if (heading) heading.focus()
+            }
+            try { if (window.gtag) window.gtag('event', 'email_signup') } catch (err) {}
+          })
+          .catch(function () {
+            if (btn) { btn.disabled = false; btn.textContent = btnLabel }
+            if (errorEl) errorEl.hidden = false
+          })
       })
-        .then(function (r) {
-          if (!r.ok) throw new Error('bad status ' + r.status)
-          if (formState) formState.hidden = true
-          if (successState) {
-            successState.hidden = false
-            // Move focus to the success heading so keyboard/SR users hear the confirmation.
-            var heading = successState.querySelector('h2')
-            if (heading) heading.focus()
-          }
-          try { if (window.gtag) window.gtag('event', 'email_signup') } catch (err) {}
-        })
-        .catch(function () {
-          if (btn) { btn.disabled = false; btn.textContent = btnLabel }
-          if (errorEl) errorEl.hidden = false
-        })
     })
   })()
 </script>
@@ -117,6 +139,10 @@ const endpoint = configured ? subscribeEndpoint(account!, form!) : ''
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-md);
   }
+  /* Compact inline placement (e.g. right after the generator): a touch tighter so it
+     reads as a nudge, not a second full section. */
+  .signup--compact { padding: var(--space-5); gap: var(--space-2); }
+  .signup--compact .signup__title { font-size: var(--text-lg); }
   .signup__state { display: grid; gap: var(--space-3); }
   /* [hidden] must win over the grid display the class sets. */
   .signup__state[hidden] { display: none; }

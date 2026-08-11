@@ -97,10 +97,21 @@ const related = (d.related ?? [])
 // to live neighbors NOW — even before its curated cluster siblings publish (and
 // fixes pages with an empty `related`). Newest first; hubs excluded; cap ~3.
 const relatedSlugs = new Set(related.map((r) => r.slug))
-const liveOthers = all
-  .filter((e) => e.id !== entry.id && e.data.type !== 'category' && !relatedSlugs.has(e.id) && isPublished(e.data.publish_date))
+const isLiveOther = (e) =>
+  e.id !== entry.id && e.data.type !== 'category' && !relatedSlugs.has(e.id) && isPublished(e.data.publish_date)
+// Cluster-aware top-up: fill from SAME-category neighbors first (ranked by age
+// proximity, like the curated related list), so a routine page links other routines
+// and an age page links adjacent ages — then fall back to other live pages, newest
+// first, so every page still links somewhere even before its cluster fills.
+const ageGap = (e) =>
+  typeof e.data.age === 'number' && typeof d.age === 'number' ? Math.abs(e.data.age - d.age) : 99
+const sameCatOthers = all
+  .filter((e) => isLiveOther(e) && e.data.category && e.data.category === d.category)
+  .sort((a, b) => (ageGap(a) - ageGap(b)) || a.id.localeCompare(b.id))
+const otherLive = all
+  .filter((e) => isLiveOther(e) && !(e.data.category && e.data.category === d.category))
   .sort((a, b) => (b.data.publish_date ?? '').localeCompare(a.data.publish_date ?? ''))
-  .map((e) => ({ slug: e.id, title: e.data.h1 }))
+const liveOthers = [...sameCatOthers, ...otherLive].map((e) => ({ slug: e.id, title: e.data.h1 }))
 // §2: age pages always surface the allowance-by-age breakout (concentrate authority
 // on the site's strongest page). Prepend it when live + not the current page.
 const allowanceEntry = byId.get('allowance-for-kids-by-age')
@@ -231,6 +242,10 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
       </div>
     )}
 
+    {/* Peak-intent email capture: someone who just built a chart is the most likely
+        to want the whole Age-by-Age pack. Compact so it reads as a nudge, not a wall. */}
+    {showGenerator && <EmailSignup id="pack-inline" compact={true} />}
+
     {isHub && (
       <section class="content-section" aria-labelledby="browse-heading">
         <h2 id="browse-heading">Find a chore chart for your child's age</h2>
@@ -261,6 +276,9 @@ const collectionSafe = collectionJsonLd ? JSON.stringify(collectionJsonLd).repla
         </div>
       </section>
     )}
+
+    {/* Hub peak-intent capture: after the "build one right now" generator. */}
+    {isHub && <EmailSignup id="pack-hub" compact={true} />}
 
     {band && (
       <section class="content-section" aria-labelledby="age-chores-heading">
