@@ -47,9 +47,12 @@
   ],
   "category": "chore-charts-by-age",
   "related": [
+    "chore-chart-for-tweens",
     "chore-chart-for-11-year-old",
-    "chore-chart-for-an-8-year-old",
-    "chore-chart-for-teens"
+    "chore-chart-for-an-8-year-old"
+  ],
+  "pinned_related": [
+    "chore-chart-for-tweens"
   ],
   "publish_date": "2026-06-23",
   "generator_variant": "money"
