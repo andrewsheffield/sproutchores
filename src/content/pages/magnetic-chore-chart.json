@@ -45,6 +45,10 @@
     }
   ],
   "category": "family-chore-charts",
-  "related": [],
+  "related": [
+    "chore-chart-for-family-of-4",
+    "chore-chart-for-family-of-5",
+    "chore-chart-for-family-of-6"
+  ],
   "publish_date": "2026-08-04"
 }

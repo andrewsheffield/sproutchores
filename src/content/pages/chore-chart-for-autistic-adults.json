@@ -41,7 +41,11 @@
     }
   ],
   "category": "chore-charts-for-adults",
-  "related": [],
+  "related": [
+    "chore-chart-for-adults",
+    "chore-chart-for-boyfriend",
+    "chore-chart-for-couples"
+  ],
   "publish_date": "2026-07-11",
   "generator_variant": "blank"
 }

@@ -46,7 +46,9 @@
   ],
   "category": "family-chore-charts",
   "related": [
-    "house-cleaning-schedule"
+    "chore-chart-for-family-of-4",
+    "chore-chart-for-family-of-5",
+    "chore-chart-for-family-of-6"
   ],
   "publish_date": "2026-07-04",
   "generator_variant": "household"

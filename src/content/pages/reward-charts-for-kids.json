@@ -46,7 +46,11 @@
     }
   ],
   "category": "reward-charts",
-  "related": [],
+  "related": [
+    "chore-chart-with-money",
+    "chore-chart-with-rewards",
+    "reward-chart-for-toddlers"
+  ],
   "publish_date": "2026-06-21",
   "generator_variant": "reward"
 }

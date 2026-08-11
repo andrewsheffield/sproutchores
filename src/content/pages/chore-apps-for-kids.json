@@ -51,8 +51,11 @@
   "category": "free-printable-chore-charts",
   "related": [
     "chore-chart-for-adhd-kids",
-    "chore-chart-with-rewards",
-    "chore-chart-for-teens"
+    "blank-chore-chart",
+    "chore-chart-for-boys"
+  ],
+  "pinned_related": [
+    "chore-chart-for-adhd-kids"
   ],
   "publish_date": "2026-06-27"
 }

@@ -44,8 +44,11 @@
   "category": "reward-charts",
   "related": [
     "allowance-for-kids-by-age",
-    "chore-chart-with-rewards",
-    "chore-chart-for-teenagers"
+    "star-chart-for-kids",
+    "reward-chart-for-toddlers"
+  ],
+  "pinned_related": [
+    "allowance-for-kids-by-age"
   ],
   "publish_date": "2026-06-17",
   "generator_variant": "money"

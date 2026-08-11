@@ -45,7 +45,11 @@
     }
   ],
   "category": "chore-charts-for-adults",
-  "related": [],
+  "related": [
+    "chore-chart-for-adults",
+    "chore-chart-for-autistic-adults",
+    "chore-chart-for-boyfriend"
+  ],
   "publish_date": "2026-08-28",
   "generator_variant": "blank"
 }

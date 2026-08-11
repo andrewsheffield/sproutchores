@@ -53,8 +53,11 @@
   "category": "chore-charts-by-age",
   "related": [
     "chore-chart-with-money",
-    "chore-chart-for-12-year-old",
-    "chore-chart-for-teenagers"
+    "age-appropriate-chores",
+    "chore-chart-for-10-year-olds"
+  ],
+  "pinned_related": [
+    "chore-chart-with-money"
   ],
   "publish_date": "2026-06-09"
 }

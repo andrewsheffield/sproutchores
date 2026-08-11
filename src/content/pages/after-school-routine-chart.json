@@ -51,7 +51,11 @@
   "category": "routine-charts",
   "related": [
     "homework-routine-chart",
-    "morning-routine-chart-for-kids",
+    "bedtime-routine-chart",
+    "back-to-school-checklist-for-kids"
+  ],
+  "pinned_related": [
+    "homework-routine-chart",
     "bedtime-routine-chart"
   ],
   "publish_date": "2026-06-18",

@@ -45,7 +45,11 @@
     }
   ],
   "category": "cleaning-schedules",
-  "related": [],
+  "related": [
+    "bedroom-cleaning-checklist-for-teens",
+    "cleaning-schedule-for-adhd",
+    "cleaning-schedule-for-working-moms"
+  ],
   "publish_date": "2026-08-26",
   "generator_variant": "routine"
 }

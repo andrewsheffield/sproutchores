@@ -20,6 +20,11 @@ const pages = defineCollection({
     faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     category: z.string().nullable().default(null),
     related: z.array(z.string()).default([]),
+    // Curated cross-links honored FIRST by the relinker (src/relink.mjs) before
+    // the same-category auto-fill — the only way to force an editorial link, e.g.
+    // a cross-category bridge or to keep a page from starving in an age-less
+    // cluster. Output lands in `related`; this stays the durable input.
+    pinned_related: z.array(z.string()).default([]),
     publish_date: z.string(), // YYYY-MM-DD; gates publish
     og_image: z.string().optional(),
     // Reserved seam for a future photo / AI-illustration layer (rendering + source
