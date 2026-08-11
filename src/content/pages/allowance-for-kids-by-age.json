@@ -6,7 +6,9 @@
     "allowance for kids app",
     "allowance for kids ideas",
     "chore chart for allowance",
-    "chore chart with money value"
+    "chore chart with money value",
+    "allowance chart by age",
+    "average allowance by age"
   ],
   "title": "Allowance for Kids by Age: How Much + Free Chart",
   "meta_description": "A dad of four shares a real allowance-by-age plan: about $5/week from age 5-6, teens on a $75/month job model, and how to set it up at home.",
@@ -48,7 +50,11 @@
       "a": "For our teens we run it like a job with pay: about $75 a month and no chore chart. The money comes with our right to ask for agreed-on tasks ahead of time, things like babysitting, cooking, or cleaning. Forgotten or missed jobs reduce the month-end amount, and an ongoing pattern pauses it until they show a couple of steady weeks. Since the money funds wants rather than needs, the pull to keep it does the work for us."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "chore-charts-by-age",
+  "related": [
+    "chore-chart-for-10-year-olds",
+    "chore-chart-for-11-year-old",
+    "chore-chart-for-12-year-old"
+  ],
   "publish_date": "2026-06-09"
 }

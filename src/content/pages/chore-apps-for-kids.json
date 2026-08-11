@@ -8,7 +8,7 @@
     "chore app for kids and parents",
     "chore app for kids with rewards"
   ],
-  "title": "Chore Apps for Kids: A Paper-Chart Dad's Guide",
+  "title": "Chore Apps for Kids: Free, No-Subscription & ADHD Picks",
   "meta_description": "Chore apps for kids, sorted by need: free, no-subscription, ADHD-friendly, reward-based. An honest take from a dad of four on apps vs. a paper chart.",
   "h1": "Chore Apps for Kids: An Honest Round-Up by Need",
   "intro": "I'll be straight with you before you scroll: we are a paper-and-printed-charts household, and I think for a lot of families, especially ones with young kids, a chart taped up where the work actually happens beats any app on a parent's phone. I'm Andrew, a dad of four (currently 9 to 18) and a foster parent, and the simple reason is visibility. A chore app tends to live on a grown-up's device, tucked behind a lock screen, while the kid it's supposed to guide never lays eyes on it. A little one can't follow a reminder they can't see. That said, apps genuinely help some families, and an older kid running their own tasks on their own device is a different story than a five-year-old. So this isn't an anti-app rant. It's an honest rundown: what a chore app should actually do for you, and the main types worth knowing about, grouped by the need you're trying to solve, free, no-subscription, ADHD-friendly, or reward-based. I'm not going to invent brand names, prices, or feature claims I can't stand behind. I'd rather you leave this page able to judge any app you find for yourself.",
@@ -48,7 +48,10 @@
       "a": "That's a parenting call, and ours is to keep rewards and screen time separate from chores. We don't pay per task or make kids earn fun by working; allowance in our house is tied to overall quality, consistency, and attitude rather than individual jobs. Plenty of apps are built around points and coins, and they can work for some families, but if you use one, I'd lean on its tracking and reminders and treat the rewards as optional. Chores land best when they're framed as part of belonging to a family, not a transaction."
     }
   ],
-  "category": null,
-  "related": [],
+  "category": "free-printable-chore-charts",
+  "related": [
+    "chore-chart-for-teens",
+    "daily-chore-chart-for-kids"
+  ],
   "publish_date": "2026-06-27"
 }
