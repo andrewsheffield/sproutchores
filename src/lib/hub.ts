@@ -9,9 +9,12 @@ export const MIN_HUB_MEMBERS = 3
 
 type AnyEntry = { id: string; data: { type: string; category?: string | null; publish_date: string } }
 
+// A member is any published, non-hub entry filed under this hub. Count age AND guide
+// pages: most clusters (routines, cleaning, reward, behavior, adults, adhd) are built
+// from guides, so an age-only count left every non-age hub permanently dark.
 export function publishedMemberCount(all: AnyEntry[], hubId: string): number {
   return all.filter(
-    (e) => e.data.type === 'age' && e.data.category === hubId && isPublished(e.data.publish_date)
+    (e) => e.data.type !== 'category' && e.data.category === hubId && isPublished(e.data.publish_date)
   ).length
 }
 

@@ -1,5 +1,5 @@
 {
-  "type": "category",
+  "type": "guide",
   "target_keyword": "age appropriate chores",
   "secondary_keywords": [
     "age appropriate chores for kids",
@@ -40,7 +40,7 @@
       "a": "Use age to set a sensible starting point, then adjust to the real child in front of you. The age picker gives you a developmentally reasonable baseline. If your child is new to chores, or a past chart fizzled out, begin one rung lower so success comes consistently, then climb as the work gets routine. We've found the strongest systems are the ones that bounce back after a busy week or a holiday knocks them sideways — so favor a level your child can restart easily over one that only looks good on paper."
     }
   ],
-  "category": null,
+  "category": "chore-charts-by-age",
   "related": [],
   "publish_date": "2026-06-17"
 }
