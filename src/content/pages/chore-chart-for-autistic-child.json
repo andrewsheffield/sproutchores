@@ -42,10 +42,14 @@
   ],
   "category": "chore-charts-by-age",
   "related": [
-    "age-appropriate-chores",
-    "allowance-for-kids-by-age",
-    "chore-chart-for-10-year-olds"
+    "chore-chart-for-autistic-adults",
+    "chore-chart-for-adhd-kids",
+    "age-appropriate-chores"
   ],
   "publish_date": "2026-07-13",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "chore-chart-for-autistic-adults",
+    "chore-chart-for-adhd-kids"
+  ]
 }

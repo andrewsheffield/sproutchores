@@ -46,10 +46,14 @@
   ],
   "category": "free-printable-chore-charts",
   "related": [
+    "chore-chart-for-girls",
     "blank-chore-chart",
-    "chore-apps-for-kids",
-    "chore-chart-for-boys"
+    "chore-apps-for-kids"
   ],
   "publish_date": "2026-07-27",
-  "generator_variant": "routine"
+  "generator_variant": "routine",
+  "pinned_related": [
+    "chore-chart-for-girls",
+    "blank-chore-chart"
+  ]
 }

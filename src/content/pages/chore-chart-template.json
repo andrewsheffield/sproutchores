@@ -42,9 +42,13 @@
   ],
   "category": "free-printable-chore-charts",
   "related": [
-    "blank-chore-chart",
-    "chore-apps-for-kids",
-    "chore-chart-for-boys"
+    "chore-chart-with-pictures",
+    "daily-chore-chart-for-kids",
+    "blank-chore-chart"
   ],
-  "publish_date": "2026-07-19"
+  "publish_date": "2026-07-19",
+  "pinned_related": [
+    "chore-chart-with-pictures",
+    "daily-chore-chart-for-kids"
+  ]
 }

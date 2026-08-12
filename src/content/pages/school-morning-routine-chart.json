@@ -41,10 +41,15 @@
   ],
   "category": "routine-charts",
   "related": [
-    "after-school-routine-chart",
-    "back-to-school-checklist-for-kids",
-    "back-to-school-routine-chart"
+    "morning-routine-chart-for-kids",
+    "back-to-school-routine-chart",
+    "homework-routine-chart"
   ],
   "publish_date": "2026-07-20",
-  "generator_variant": "routine"
+  "generator_variant": "routine",
+  "pinned_related": [
+    "morning-routine-chart-for-kids",
+    "back-to-school-routine-chart",
+    "homework-routine-chart"
+  ]
 }

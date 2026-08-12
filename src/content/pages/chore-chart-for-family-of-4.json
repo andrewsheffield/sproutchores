@@ -46,10 +46,14 @@
   ],
   "category": "family-chore-charts",
   "related": [
-    "chore-chart-for-family-of-5",
     "chore-chart-for-family-of-6",
-    "chore-chart-for-multiple-kids"
+    "chore-wheel",
+    "chore-chart-for-family-of-5"
   ],
   "publish_date": "2026-08-08",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "chore-chart-for-family-of-6",
+    "chore-wheel"
+  ]
 }

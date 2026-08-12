@@ -47,9 +47,12 @@
   ],
   "category": "chore-charts-by-age",
   "related": [
+    "chore-chart-for-teens",
     "chore-chart-for-14-year-old",
-    "chore-chart-for-teenagers",
-    "chore-chart-for-10-year-olds"
+    "chore-chart-for-teenagers"
   ],
-  "publish_date": "2026-07-07"
+  "publish_date": "2026-07-07",
+  "pinned_related": [
+    "chore-chart-for-teens"
+  ]
 }

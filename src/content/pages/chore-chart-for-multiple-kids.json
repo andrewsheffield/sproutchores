@@ -43,8 +43,8 @@
   "category": "family-chore-charts",
   "related": [
     "chore-chart-for-family-of-4",
-    "chore-chart-for-family-of-5",
-    "chore-chart-for-family-of-6"
+    "chore-chart-for-family-of-6",
+    "house-cleaning-schedule"
   ],
   "publish_date": "2026-07-01",
   "generator_variant": "household",
@@ -52,5 +52,10 @@
     "Kid 1",
     "Kid 2",
     "Kid 3"
+  ],
+  "pinned_related": [
+    "chore-chart-for-family-of-4",
+    "chore-chart-for-family-of-6",
+    "house-cleaning-schedule"
   ]
 }

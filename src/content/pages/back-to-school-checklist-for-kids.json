@@ -44,10 +44,14 @@
   ],
   "category": "routine-charts",
   "related": [
-    "after-school-routine-chart",
     "back-to-school-routine-chart",
+    "after-school-routine-chart",
     "bedtime-routine-chart"
   ],
   "publish_date": "2026-07-24",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "back-to-school-routine-chart",
+    "after-school-routine-chart"
+  ]
 }

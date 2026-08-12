@@ -51,5 +51,9 @@
     "chore-chart-for-boys"
   ],
   "publish_date": "2026-08-10",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "blank-chore-chart",
+    "chore-apps-for-kids"
+  ]
 }
