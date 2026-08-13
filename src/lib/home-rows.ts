@@ -8,9 +8,13 @@ export const HOME_ROW_HUBS = [
   'chore-chart-for-adhd',
 ] as const
 
-/** Curated above-the-fold stars (incl. the non-hub allowance breakout). */
+/** Curated above-the-fold stars (incl. the non-hub allowance breakout).
+ *  Slots 2–3 hold our two closest-to-page-1 pages to concentrate homepage
+ *  link equity on them (bedtime ~pos 19; autistic-child ~pos 22, best CTR). */
 export const FEATURED = [
   'allowance-for-kids-by-age',
+  'chore-chart-for-autistic-child',
+  'bedtime-routine-chart',
   'chore-chart-for-a-6-year-old',
   'chore-chart-for-adhd',
 ] as const
