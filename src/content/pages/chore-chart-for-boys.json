@@ -45,10 +45,14 @@
   ],
   "category": "free-printable-chore-charts",
   "related": [
-    "blank-chore-chart",
-    "chore-apps-for-kids",
-    "chore-chart-for-girls"
+    "responsibility-chart-for-kids",
+    "summer-chore-chart-for-kids",
+    "blank-chore-chart"
   ],
   "publish_date": "2026-09-04",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "responsibility-chart-for-kids",
+    "summer-chore-chart-for-kids"
+  ]
 }

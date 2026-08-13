@@ -48,12 +48,13 @@
   "related": [
     "chore-wheel",
     "magnetic-chore-chart",
-    "chore-chart-for-family-of-4"
+    "chore-chart-for-family-of-5"
   ],
   "publish_date": "2026-07-29",
   "generator_variant": "blank",
   "pinned_related": [
     "chore-wheel",
-    "magnetic-chore-chart"
+    "magnetic-chore-chart",
+    "chore-chart-for-family-of-5"
   ]
 }

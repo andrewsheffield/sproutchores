@@ -51,5 +51,8 @@
     "chore-chart-with-rewards"
   ],
   "publish_date": "2026-09-16",
-  "generator_variant": "reward"
+  "generator_variant": "reward",
+  "pinned_related": [
+    "reward-chart-for-toddlers"
+  ]
 }

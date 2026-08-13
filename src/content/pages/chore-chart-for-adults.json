@@ -44,8 +44,13 @@
   "related": [
     "chore-chart-for-autistic-adults",
     "chore-chart-for-boyfriend",
-    "chore-chart-for-couples"
+    "daily-chore-chart-for-adults"
   ],
   "publish_date": "2026-06-15",
-  "generator_variant": "household"
+  "generator_variant": "household",
+  "pinned_related": [
+    "chore-chart-for-autistic-adults",
+    "chore-chart-for-boyfriend",
+    "daily-chore-chart-for-adults"
+  ]
 }

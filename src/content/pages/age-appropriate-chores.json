@@ -43,11 +43,12 @@
   "category": "chore-charts-by-age",
   "related": [
     "chore-chart-for-autistic-child",
-    "allowance-for-kids-by-age",
-    "chore-chart-for-10-year-olds"
+    "montessori-chore-chart-by-age",
+    "allowance-for-kids-by-age"
   ],
   "publish_date": "2026-06-17",
   "pinned_related": [
-    "chore-chart-for-autistic-child"
+    "chore-chart-for-autistic-child",
+    "montessori-chore-chart-by-age"
   ]
 }

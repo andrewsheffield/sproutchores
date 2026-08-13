@@ -42,14 +42,19 @@
   ],
   "category": "chore-charts-for-adults",
   "related": [
+    "chore-chart-for-husband-and-wife",
     "chore-chart-for-adults",
-    "chore-chart-for-autistic-adults",
-    "chore-chart-for-boyfriend"
+    "chore-chart-for-autistic-adults"
   ],
   "publish_date": "2026-06-29",
   "generator_variant": "household",
   "people": [
     "Partner 1",
     "Partner 2"
+  ],
+  "pinned_related": [
+    "chore-chart-for-husband-and-wife",
+    "chore-chart-for-adults",
+    "chore-chart-for-autistic-adults"
   ]
 }

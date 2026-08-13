@@ -48,12 +48,13 @@
   "related": [
     "chore-chart-with-money",
     "reward-charts-for-kids",
-    "reward-chart-for-toddlers"
+    "star-chart-for-kids"
   ],
   "publish_date": "2026-07-23",
   "generator_variant": "reward",
   "pinned_related": [
     "chore-chart-with-money",
-    "reward-charts-for-kids"
+    "reward-charts-for-kids",
+    "star-chart-for-kids"
   ]
 }

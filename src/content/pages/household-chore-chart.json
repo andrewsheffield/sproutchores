@@ -45,10 +45,14 @@
   ],
   "category": "family-chore-charts",
   "related": [
-    "chore-chart-for-family-of-4",
-    "chore-chart-for-family-of-5",
-    "chore-chart-for-family-of-6"
+    "reward-chart-for-adults",
+    "roommate-chore-chart",
+    "chore-chart-for-family-of-3"
   ],
   "publish_date": "2026-09-22",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "reward-chart-for-adults",
+    "roommate-chore-chart"
+  ]
 }

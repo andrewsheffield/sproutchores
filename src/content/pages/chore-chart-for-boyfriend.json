@@ -46,10 +46,15 @@
   ],
   "category": "chore-charts-for-adults",
   "related": [
-    "chore-chart-for-adults",
-    "chore-chart-for-autistic-adults",
-    "chore-chart-for-couples"
+    "chore-chart-for-couples",
+    "chore-chart-for-husband-and-wife",
+    "chore-chart-for-adults"
   ],
   "publish_date": "2026-08-06",
-  "generator_variant": "blank"
+  "generator_variant": "blank",
+  "pinned_related": [
+    "chore-chart-for-couples",
+    "chore-chart-for-husband-and-wife",
+    "chore-chart-for-adults"
+  ]
 }

@@ -48,12 +48,13 @@
   "related": [
     "family-chore-chart",
     "chore-chart-for-multiple-kids",
-    "bathroom-cleaning-checklist"
+    "deep-cleaning-checklist"
   ],
   "publish_date": "2026-07-21",
   "generator_variant": "routine",
   "pinned_related": [
     "family-chore-chart",
-    "chore-chart-for-multiple-kids"
+    "chore-chart-for-multiple-kids",
+    "deep-cleaning-checklist"
   ]
 }
